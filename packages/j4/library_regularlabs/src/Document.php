@@ -356,16 +356,16 @@ class Document
     }
 
     /**
-     * Check if the current setup matches the given main version number
+     * Check if the current setup is greater or equal the given main version number
      *
      * @param int    $version
      * @param string $title
      *
      * @return bool
      */
-    public static function isJoomlaVersion($version, $title = '')
+    public static function isJoomlaVersionAtLeast($version, $title = '')
     {
-        if ((int) JVERSION == $version)
+        if ((int) JVERSION >= $version)
         {
             return true;
         }

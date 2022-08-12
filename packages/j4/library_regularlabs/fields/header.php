@@ -11,7 +11,7 @@
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Application\ApplicationHelper as JApplicationHelper;
+use Joomla\CMS\Installer\Installer as JInstaller;
 use Joomla\CMS\Language\Text as JText;
 use RegularLabs\Library\Field;
 use RegularLabs\Library\RegEx as RL_RegEx;
@@ -74,7 +74,7 @@ class JFormFieldRL_Header extends Field
 
         if ($xml)
         {
-            $xml     = JApplicationHelper::parseXMLInstallFile(JPATH_SITE . '/' . $xml);
+            $xml     = JInstaller::parseXMLInstallFile(JPATH_SITE . '/' . $xml);
             $version = 0;
             if ($xml && isset($xml['version']))
             {
