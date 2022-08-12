@@ -16,6 +16,9 @@
  * # Fix
  */
 
+13-Aug-2022 : v8.2.3
+ + Added Joomla 4 compatibility
+
 10-Aug-2022 : v8.2.2
  # Fixes issue with potential errors during installation
 

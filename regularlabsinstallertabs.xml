@@ -2,9 +2,9 @@
 <extension version="3.9" type="plugin" group="system" method="upgrade">
     <name>System - Regular Labs Installer</name>
     <description></description>
-    <version>22.8.8209</version>
+    <version>22.8.8210</version>
     <creationDate>August 2022</creationDate>
-    <author>Regular Labs (Peter van Westen)</author>
+    <author>Regular Labs (Peter van Westen) + Veekee</author>
     <authorEmail>info@regularlabs.com</authorEmail>
     <authorUrl>https://regularlabs.com</authorUrl>
     <copyright>Copyright © 2016 Regular Labs - All Rights Reserved</copyright>
