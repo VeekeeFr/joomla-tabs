@@ -1,0 +1,1106 @@
+/**
+ * Changelog
+ *
+ * @package         Tabs
+ *
+ * @author          Peter van Westen <info@regularlabs.com>
+ * @link            https://regularlabs.com
+ * @copyright       Copyright © 2022 Regular Labs - All Rights Reserved
+ * @license         http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
+ */
+
+/**
+ * + Addition
+ * ! Removal
+ * ^ Change
+ * # Fix
+ */
+
+10-Aug-2022 : v8.2.2
+ # Fixes issue with potential errors during installation
+
+09-Aug-2022 : v8.2.1
+ ^ Changes code styling: tabs to spaces
+ ^ Refactors some code
+ # Fixes issue with redundant title attribute on handle link (if the same as handle text)
+ # Fixes issue with wrong attribute being added on closed content elements (should be hidden instead of aria-hidden)
+
+10-Feb-2022 : v8.2.0
+ ^ Increases minimum php version to 7.4.0
+ ^ Updates translations: tr-TR
+ # Fixes issue with error on installation when using php 8.1 or higher
+ # Fixes issue with some error messages that should only show in admin side also showing on frontend
+
+28-Aug-2021 : v8.1.3
+ # Fixes issue with scripts and styles not being added in some cases (on certain template)
+
+23-Aug-2021 : v8.1.2
+ ^ Improves upgrade/update check information in Joomla updater for editor button plugin
+ # Fixes issue with the loading of scripts and styles being triggered too early
+
+14-Aug-2021 : v8.1.1
+ ^ Improves upgrade/update check information in Joomla updater
+ # Fixes issue with non-html pages (like raw) being forced to html format in some case
+ # Fixes issue with php TypeError being thrown on some xml pages
+ # Fixes issue with potential php error about undefined property $button_text
+ # Fixes issue with styles and scripts getting loaded after template styles and scripts
+
+15-Jul-2021 : v8.1.0
+ ^ Cleans up code
+ ^ Improves dealing with Joomla 3 code (disabling plugins) after upgrading to Joomla 4
+ ^ Improves syntax (and file size) of css and minified css files
+ ^ Increases minimum php version to 7.2.0
+ ^ Updates translations: de-DE
+ # Fixes issue with incorrect update urls on plugins
+ # Fixes issue with update site being saved incorrectly
+
+13-Apr-2021 : v8.0.1
+ ^ Changes code in minified javascript files to not use eval
+ # Fixes issue with Load jQuery option not working (jquery always gets loaded)
+ # [FREE] Fixes issue with alignment setting in editor button popup not working
+
+23-Mar-2021 : v8.0.0
+ ! Removes option to set the tag delimiter to `{tab=...}`
+ ^ Deprecates the syntax `{tab My Tab}` in favor of the attribute syntax `{tab title="My Tab"}`
+ ^ Makes content background white by default to match the active tab background
+ ^ Moves the anchor tag used for scrolling inside the heading tag
+ ^ Updates translations: sv-SE, tr-TR
+
+17-Oct-2020 : v7.8.0
+ + Adds ability to override the `output_title_tag` setting via the tag syntax
+ + [PRO] Adds ability to override the `fade` setting via the tag syntax
+ ^ Updates translations: tr-TR
+ # Fixes issue with plugin tags not getting handled in some cases (due to empty value being saved in Disable in Components setting)
+
+14-Sep-2020 : v7.7.3
+ + Adds option to not output the hidden title tag
+ ^ More preparations for Joomla 4 (in)compatibility
+ # Fixes issue with "Enable in administrator" option not working
+ # Fixes issue with php notice about declaration of loadStylesAndScripts not being compatible
+ # Fixes issue with plugin being handled inside frontend module edit form
+ # Fixes issue with plugin not running on AcyMailing archive pages
+
+25-Aug-2020 : v7.7.2
+ # Fixes issue with absolute urls being broken (no '://' after the http(s) part)
+
+19-Aug-2020 : v7.7.1
+ # Fixes issue with modal popups not respecting right-to-left languages
+ # Fixes issue with php notice about too few arguments passed to function onContentPrepare
+
+17-Aug-2020 : v7.7.0
+ ^ Preparations for Joomla 4 (in)compatibility
+
+23-Jun-2020 : v7.6.0
+ + Adds extra css class to editor buttons which can be used for custom styling
+ ^ Changes default code example inserted by the simple editor button
+ ^ Updates some language strings
+ ^ Updates translations: tr-TR
+
+21-Apr-2020 : v7.5.11
+ ^ Makes it possible to place plugin tag attribute values in single quotes instead of double quotes (can be useful when used inside html attribute values)
+ ^ Updates translations: fr-FR, ru-RU, tr-TR
+ # Fixes issue with html entity quotes inside the titles messing stuff up in some cases
+ # Fixes issue with plugin running on Gridbox edit forms (which it shouldn't)
+ # Fixes issue with plugin running on SP PageBuilder edit forms (which it shouldn't)
+
+30-Aug-2019 : v7.5.10
+ ! Removes the aria `role="heading"` from the tab titles
+ ^ Updates translations: it-IT, nl-NL, pl-PL
+ # Fixes issue with incorrectly added `aria-expanded` attribute (should only use aria-selected)
+ # Fixes issue with php notice about array to string conversion on certain AcyMailing pages
+ # Fixes issue with php notice about array to string conversion on certain HikaShop pages
+
+15-Apr-2019 : v7.5.9
+ # Fixes issue with missing `aria-expanded` attribute to necessary elements
+
+06-Apr-2019 : v7.5.8
+ + Adds translations: zh-CN
+ # Fixes issue with not all normal anchor links opening parent tabs
+
+11-Mar-2019 : v7.5.7
+ ^ Changes minimum requirement from Joomla 3.8.8 to Joomla 3.9.0
+ # Fixes issue with plugin tags not working correctly when using different than default tag characters in some cases
+
+05-Mar-2019 : v7.5.6
+ ^ Changes minimum requirement from Joomla 3.8.0 to Joomla 3.8.8
+ # Fixes issue with hash links not working
+
+23-Feb-2019 : v7.5.5
+ # Fixes issue with scrolling on alternative mobile view links not working
+
+13-Feb-2019 : v7.5.4
+ # Fixes issue with fatal error concerning DB::prepareValue having too few arguments
+
+13-Feb-2019 : v7.5.3
+ # [PRO] Fixes issue with offset scrolling on mobile not working correctly
+
+21-Dec-2018 : v7.5.2
+ ^ Updates translations: et-EE
+ # Fixes issue with form select elements acting funny on FireFox
+
+06-Dec-2018 : v7.5.1
+ # Fixes issue with editor button popup not working
+
+05-Dec-2018 : v7.5.0
+ + Adds extra option to the Tag Characters setting («...»)
+ + Adds title attributes to main links
+ ^ Changes use of RL toggler scripts to use Joomla core showon scripts
+ ^ Improves some styling
+ ^ Improves way Regular Labs Library scripts and styles are loaded on admin side
+ ^ Refactors some code
+ ^ Updates translations: et-EE, tr-TR
+ # Fixes issue with content in Yootheme Pro templates not working in some cases (because of a jacked up way Yootheme is storing data in the fulltext property!)
+
+02-Oct-2018 : v7.4.3
+ ^ Changes minimum requirement from Joomla 3.7.0 to Joomla 3.8.0
+ # Fixes issue with content sometimes getting duplicated on K2 items
+ # Fixes issue with tags not always being handled at article prepare stage
+
+07-Sep-2018 : v7.4.2
+ ^ Rearranges plugin options
+ # Fixes potential SECURITY issue concerning cross site scripting via editor button popup
+
+06-Jul-2018 : v7.4.1
+ + Adds resize trigger to make certain javascript based scripts (like galleries) work better inside tabs
+
+25-Jun-2018 : v7.4.0
+ + [PRO] Adds ability to set a random tab as the open one using `open="random"`
+ # Fixes issue with Chrome 67 throwing an "Aw, snap!" error when trying to open tab via url
+
+23-May-2018 : v7.3.0
+ + Adds divs around tab output for print pages, so stuff can be styled via css
+ # Fixes issue with tags sometimes not getting handled when found after comment tags with certain syntax
+ # Fixes small html code style issue with no whitespace between attributes
+
+26-Apr-2018 : v7.2.3
+ # Fixes issue with plugin tags not being handled when containing weird comment tag syntaxes
+
+23-Apr-2018 : v7.2.2
+ ^ Improves ARIA role attributes
+ # Fixes issue with plugin tags inside html comments being converted
+
+21-Mar-2018 : v7.2.1
+ ^ Updates translations: fr-FR
+ # Fixes issue with system plugin settings page breaking if Enable in Administrator option is switched on
+
+25-Feb-2018 : v7.2.0
+ ^ Changes minimum requirement from Joomla 3.6.0 to Joomla 3.7.0
+ # Fixes issue with iframes in non-active nested tabs not getting reloaded
+ # Fixes some javascript issues in admin side on Joomla 3.7.0
+
+09-Jan-2018 : v7.1.8
+ ^ Makes alias creation listen to the global Unicode Aliases setting
+ ^ Updates translations: cs-CZ, da-DK, nb-NO, ru-RU, tr-TR
+ # Fixes issue with fatal errors on Joomla 3.6 and 3.7
+ # Fixes issue with plugin tags not getting replaced in some cases
+ # [PRO] Fixes issue with Disable On Components option not working
+
+07-Sep-2017 : v7.1.7
+ + [PRO] Fixes issue with Joomla updater not seeing new Pro versions after upgrading from Free to Pro
+ ^ Improves handling of links with weird url hash values
+ ^ Updates translations: sv-SE
+ # Fixes issue with javascript failing when using delayed js loading via LABjs
+
+22-Jul-2017 : v7.1.6
+ # Fixes issue with Regular Labs plugins no longer being run on category blog pages
+
+20-Jul-2017 : v7.1.5
+ ^ Also shows editor button to users without core edit rights
+ ^ Improves styling of editor button popup
+ ^ Improves the way the system plugin methods gets called
+ ^ Updates translations: cs-CZ, it-IT, tr-TR
+ # Fixes issue with passing Tab name through (deprecated) `{tablink}` tag not generating correct hash link
+
+18-Jun-2017 : v7.1.4
+ # Fixes issue with tabs not getting initialized
+
+18-Jun-2017 : v7.1.3
+ # Fixes issue with javascript error concerning Joomla.getOptions on J3.6
+
+16-Jun-2017 : v7.1.2
+ # Fixes issue with opening tabs via url hash not working
+
+14-Jun-2017 : v7.1.1
+ # Fixes issue with fatal errors when Regular Labs Library does not get updated correctly
+
+14-Jun-2017 : v7.1.0
+ ^ Changes way option are passed to script
+ ^ Updates translations: id-ID
+ # Fixes issue with javascript errors when url hash contains slashes or semi-colons
+ # Fixes issue with potential jQuery error in editor popup on some setups
+ # [PRO] Fixes issue with slideshows sometimes showing empty tabs
+
+27-Apr-2017 : v7.0.10
+ ^ Improves scrolling to anchors inside tabs
+
+24-Mar-2017 : v7.0.9
+ # Fixes issue with title tag not being override-able via `{tab}` tag
+
+23-Mar-2017 : v7.0.8
+ ^ Improves support for Bootstrap 4
+
+07-Mar-2017 : v7.0.7
+ ^ Improves handling of surrounding html tags
+ ^ Improves rendering speed when no plugin tags are found
+ ^ Updates translations: uk-UA
+ # [PRO] Fixes issue with scrolling not working on links to tabs
+
+18-Feb-2017 : v7.0.6
+ # Fixes issue with websites using certain encodings breaking
+
+15-Feb-2017 : v7.0.5
+ # Fixes issue with editor button popup not loading on some setups
+ # Fixes issue with replacements not being done on some websites using special character sets
+
+14-Feb-2017 : v7.0.4
+ # Fixes issue with editor button popup being blank on some setups
+ # Fixes issues with utf-8 characters in titles
+ # [PRO] Fixes issue with updates via core installer sometimes failing
+
+05-Feb-2017 : v7.0.3
+ # Fixes issue with SobiPro edit forms not being protected from plugin handling
+ # Fixes issue with tags not being handled in some situations (large pages)
+
+29-Jan-2017 : v7.0.2
+ ^ Changes minimum requirement from Joomla 3.4.1 to Joomla 3.6.0
+ # Fixes issue with potential fatal errors when updating from older version
+
+25-Jan-2017 : v7.0.1
+ # Fixes issue with trailing title Tabs appearing on print pages
+
+20-Jan-2017 : v7.0.0
+ + Adds Bootstrap 4 classes to elements to provide better Bootstrap 4 compatibility
+ + Adds support for area maps to link to tabs using hashes
+ ^ Changes minimum requirement from php 5.3.13 to php 5.4
+ ^ Completely recoded the extension and Regular Labs Library (now using namespaces)
+ ^ Updates translations: id-ID
+ # Fixes issue with Google indexing all tab titles before content
+ # Fixes issue with links to anchors inside tabs not scrolling
+ # [PRO] Fixes issue with 'Stop slideshow on click' option not working
+ # [PRO] Fixes issue with slideshow not showing next tab when not starting with the first as open
+ # [PRO] Fixes issue with slideshow option in editor button not working
+
+04-Dec-2016 : v6.2.5
+ # Fixes issue with Regular Labs Library plugin causing slowness in administrator when 'Show Help Menu Item' is enabled
+ # [PRO] Fixes issue with global hover mode not working
+
+28-Nov-2016 : v6.2.4
+ ^ Improves loading speed on pages with large forms
+ ^ Moves toolbar in editor button popup to floating top position
+ ^ Updates translations: de-DE
+ # Fixes issue with links to settings/plugins not being correct when non-English language uses different extension names
+ # Fixes issues with page breaking when Regular Labs Library folder is missing
+
+26-Oct-2016 : v6.2.3
+ # Fixes issue with scrolling on links to open tabs not working
+
+24-Oct-2016 : v6.2.2
+ # Fixes issue with tags not being handled in pdfs
+
+06-Oct-2016 : v6.2.1
+ # Fixes issue with parameters with value false or 0 not working correctly
+
+30-Sep-2016 : v6.2.0
+ + Adds ability to set `heading_attributes`, `link_attributes` and `body_attributes` via the tag to add custom attributes to the html elements
+ + Adds translations: nl-BE
+ + [PRO] Adds ability to limit access by access levels/user groups by using negative values, like `access="!Registered"`
+ # Fixes issue with php memory issues on large form pages
+
+17-Aug-2016 : v6.1.0
+ ! Removes filling of editor button popup fields based on selection, as it was buggy
+ # Fixes issue with quotes inside the tags not getting interpreted correctly when using some editors (JoomlaCK)
+ # [PRO] Fixes issue with tabs with restricted access sometimes not getting removed
+
+08-Aug-2016 : v6.0.9
+ ^ Updates translations: fr-FR, tr-TR
+ # Fixes issue with links inside titles sometimes not being handled correctly
+
+13-Jul-2016 : v6.0.8
+ ^ Updates translations: fr-FR
+ # Fixes issue with editor button popup throwing error in Joomla 3.6
+ # Fixes issue with links as titles not working
+ # [PRO] Fixes issue with nested tabs with blocked usergroup not getting removed correctly
+
+07-Jul-2016 : v6.0.7
+ ^ Updates translations: tr-TR
+ # Fixes styling of tabs with a link as title
+ # [PRO] Fixes issue with nested tabs with blocked usergroup not getting removed correctly
+
+28-Jun-2016 : v6.0.6
+ # Fixes issue with scrolling to non-anchor ids not working
+ # Fixes scrolling to anchors inside tabs not always working due to automatic browser scrolling
+ # [PRO] Fixes issue with access/user group restrictions not working correctly when having multiple tabs with same name/syntax
+ # [PRO] Fixes issue with access/user group restrictions not working correctly when having nested tabs
+
+19-Jun-2016 : v6.0.5
+ # [PRO] Fixes issue with access/user group restrictions not working on other tabs when used on first tab
+ # [PRO] Fixes issue with editor button popup not working when selecting stuff in dropdowns
+
+14-Jun-2016 : v6.0.4
+ ^ Updates translations: da-DK, pl-PL, tr-TR
+
+15-May-2016 : v6.0.3
+ # [PRO] Fixes issue with slideshow always being set to 1 when inserting tag
+
+23-Apr-2016 : v6.0.2
+ # [FREE] Fixes issue with php notice about undefined property `$fade`
+
+20-Apr-2016 : v6.0.1
+ # Fixes issue with hash links not working on safari
+
+16-Apr-2016 : v6.0.0
+ + Adds option to add main classes via settings and tag
+ + [PRO] Adds slideshow options to editor button popup
+ ! Removes Old School styling
+ ^ Changes tag syntax to use html style attributes (still works with old style too)
+ ^ Improves filling of editor button popup with data from selection
+ ^ Moves from NoNumber to Regular Labs branding
+ ^ [PRO] Improves handling of timeouts for slideshows
+
+07-Apr-2016 : v5.3.1
+ # Fixes issue with 'tab-' being prepended to url hashes
+ # Fixes issue with hash links not working on safari
+
+01-Apr-2016 : v5.3.0
+ + [PRO] Adds ability to set an onclick function in the tag
+ ! Removes the tablink options
+ ^ Improves handling of anchor links
+ ^ Updates some HTML syntax
+ ^ Updates translations: fa-IR
+ # Fixes issue with incorrect tab heights of tabs in Safari (sometimes)
+ # Fixes issue with url query being removed when adding hash to url
+
+05-Mar-2016 : v5.2.2
+ ^ Improves handling of AcyMailing pages
+ # [PRO] Fixes issue with alignment not being set correctly via editor button popup
+
+28-Feb-2016 : v5.2.1
+ # Fixes issue with template overrides for css/js files not working anymore
+
+26-Feb-2016 : v5.2.0
+ + Adds version number to own css/js files (and option to switch it off)
+ # Fixes issue with javascript causing errors when a script merging
+ # [FREE] Fixes issue with javascript error
+
+24-Feb-2016 : v5.1.15
+ # Fixes issue with incorrect tab heights of nested tabs in Safari (again)
+
+22-Feb-2016 : v5.1.14
+ + Adds ability to override the SEO title heading type via the tag with `title_tag=`
+ ^ Improves handling of surrounding heading tags (h1-6)
+ # Fixes issue with links to nested anchors not opening parent tabs
+ # Fixes issue with tab handles sometimes not being same height
+
+03-Feb-2016 : v5.1.13
+ # Fixes double scrolling (jumping) on hash links to tabs
+
+29-Jan-2016 : v5.1.12
+ # Fixes issue with incorrect tab heights of nested tabs in Safari
+
+28-Jan-2016 : v5.1.11
+ # Fixes issue with editor button only showing when user has core content create/edit permissions
+ # Fixes issue with plugin tags not being converted in smart search (finder)
+ # Fixes issues with Joomla 3.5 and php7 compatibility
+
+11-Jan-2016 : v5.1.10
+ # Fixes issue with editor button not working
+
+10-Jan-2016 : v5.1.9
+ # Fixes issue with javascript failing is some situations
+
+07-Jan-2016 : v5.1.8
+ ^ Updates translations: uk-UA
+ # Fixes issue with php notice about undefined variable replacements
+ # Fixes issue with tags sometimes not getting converted when using non-default tag characters
+ # [PRO] Fixes issue with tab content indenting of nested tabs in left aligned parent tabs
+
+14-Dec-2015 : v5.1.7
+ ^ Updates translations: fr-FR
+ # Fixes issue with javascript errors when using javascript compressors/combiners/cachers
+ # [PRO] Fixes issue with tab content of nested tabs in non-active left/right aligned tabs being wrong position
+
+26-Nov-2015 : v5.1.6
+ # Fixes issue with editor button popup freezing when selecting text in editor before clicking
+ # Fixes issue with tab handles of nested tabs in non-active tabs being wrong height
+
+16-Nov-2015 : v5.1.5
+ # Fixes issue with aliases not being created correctly from tilte on some setups
+ # Fixes issue with tab handles sometimes not being same height
+ # Fixes issue with tags being converted in edit forms
+ # [PRO] Fixes issue with hover mode tabs not working till after a tab is clicked
+
+03-Nov-2015 : v5.1.4
+ ^ Adds compatibility for setups that do not have mbstring enabled (but still less stable)
+ ^ Updates translations: fa-IR
+ # Fixes issue with regular expressions not working on some php versions (5.6.14)
+ # Fixes issue with tab titles not showing on print pages
+ # Fixes issue with tags not getting interpreted
+
+23-Oct-2015 : v5.1.3
+ # Fixes issue with false feed check
+
+22-Oct-2015 : v5.1.2
+ ^ Improves handling of surrounding html div tags
+
+09-Oct-2015 : v5.1.1
+ # Fixes issue with PHP notice about undefined property tag_character_start
+
+02-Oct-2015 : v5.1.0
+ + Adds ability to change the surrounding tag syntax characters
+ + Adds translations: ja-JP
+ ^ Improves handling of surrounding html tags
+ ^ Updates translations: de-DE, et-EE, sv-SE, uk-UA
+ # Fixes issue with hash in links being added to internal Joomla getURI result
+ # Fixes issue with missing alias field in editor button popup
+ # Fixes issue with nested tablinks not working
+ # Fixes issue with some special characters being replaced with ? sign
+ # [PRO] Fixes issue with not being to overrule the mode (click/hover)
+
+20-Aug-2015 : v5.0.6
+ # [PRO] Improves scrolling behaviour when clicking on open tab
+ # [PRO] Improves scrolling behaviour when page is already scrolling
+
+09-Aug-2015 : v5.0.5
+ # Fixes issue with php error about call to a member function get() on a non-object on some components
+
+08-Aug-2015 : v5.0.4
+ # [FREE] Fixes issue with tab links and hash links not working
+
+07-Aug-2015 : v5.0.3
+ # Fixes issue with uninstallation getting into a loop
+ # Fixes issue with upgrading not working
+
+31-Jul-2015 : v5.0.2
+ # Fixes issues with tabs of nested anchors via url hash not opening
+
+30-Jul-2015 : v5.0.1
+ # Fixes issues on uninstallation
+
+29-Jul-2015 : v5.0.0
+ + Adds ARIA role attributes
+ + Adds active class on tab links
+ + Adds advanced editor button popup wizard to create the Tabs syntax
+ + Adds css to hide navigation on print page
+ + Adds option to set script initialisation delay
+ + Improves handling of hash links
+ ! [J2.5] Removes Joomla 2.5 support
+ ^ Changes minimum requirement to Joomla version 3.4.1
+ ^ Recodes the installer
+ ^ Updates translations: es-ES
+ # Fixes css issue with Jooswatch (and other Bootstrap 3) templates)
+ # Fixes invalid usage of the rel attribute
+ # Fixes issue with duplicate ids
+ # Fixes issue with duplicate spaces being removed from the titles
+ # Fixes issue with some special characters in title messing up ids
+ # Fixes issue with tabs with cyrillic characters not always working
+ # [PRO] Adds slideshow support (automatically go to next tab)
+ # [PRO] Fixes issue with html getting messed up when using access restriction on nested tabs
+
+09-May-2015 : v4.1.3
+ ^ Updates translations: fa-IR
+ ^ [J3] Improves handling of selected text in editor when clicking on editor button
+ # [J3] Fixes issue with double quotes at end of hash links
+ # [J3] Fixes issue with tablinks via title not always working
+ # [J3][FREE] Fixes issue with error about undefined property disable_components
+
+06-Mar-2015 : v4.1.2
+ # [J3] Fixes issue with url hashes not getting added on some browsers
+
+06-Mar-2015 : v4.1.1
+ ^ Updates translations: ru-RU
+ ^ [J3] Improves rendering speed on pages with large contents
+ # [J3] Fixes issue with javascript error regarding history.replaceState on IE9 and older
+ # [J3][PRO] Fixes issue with access restriction not working with access levels / usergroups with spaces
+ # [J3][PRO] Fixes issue with html structure breaking when access restriction blocks all tabs in a set
+
+26-Feb-2015 : v4.1.0
+ ^ Updates translations: uk-UA
+ # [PRO] Fixes issue with components select list only saving one value
+ # [J3] Fixes issue with activating tabs via url by name or number not working (only alias)
+ # [J3] Fixes issue with back button in browser going through url hashes
+ # [J3] Fixes usage of name instead of id attribute on anchor tags
+ # [J3][PRO] Fixes issue with javascript errors when using cookie option
+
+29-Jan-2015 : v4.0.10
+ # [J3][PRO] Fixes issue with hover mode not working
+
+14-Jan-2015 : v4.0.9
+ + [J3][PRO] Adds option to remove/keep plugin syntax on disabled components
+ ^ Updates translations: et-EE, id-ID, lt-LT, sv-SE
+ # [PRO] Fixes issue with disable on components option not working
+
+08-Jan-2015 : v4.0.8
+ + Adds option to enable iframe reloading (off by default)
+ ! Removes compatibility for php versions under 5.3.13
+ # Fixes issue with Free version being able to be installed over the Pro version
+ # [J3][PRO] Fixes issue with whitespace (margin) between tabs and content when using left positioning
+
+13-Dec-2014 : v4.0.7
+ ! [J3] Removes compatibility for Joomla 3 versions under 3.3.0
+ ^ Updates translations: zh-TW
+ # [J3] Fixes issue with scrolling to tab when going to hash url directly when scrolling is switched off
+ # [J3][PRO] Fixes issue with an alert showing when activating tabs by cookies
+
+26-Nov-2014 : v4.0.6
+ # [J3] Changes the way the transitions are added which should fix all the cross-browser compatibility issues with the javascript since v4.0.0
+
+24-Nov-2014 : v4.0.5
+ # [J3] Fixes issue with css issues on IE10+
+
+21-Nov-2014 : v4.0.4
+ # Fixes issue with error about nnFile on installation on some setups
+ # [J3] Fixes issue with javascript error about createStyleSheet on IE
+ # [J3] Fixes issue with javascript error about insertRule on Firefox some setups
+ # [J3][PRO] Fixes issue with margins on small screens when using left/right positioning and responsive view
+
+14-Nov-2014 : v4.0.3
+ # [J3] Fixes issue with iframes not displaying correctly in inactive tabs
+
+11-Nov-2014 : v4.0.2
+ # [PRO] Fixes issues with duplicate rows in `update_sites` table
+ # [J3] Fixes issue with W3C markup issues
+ # [J3] Fixes issue with tabs being styled differently on small screens when not using responsive view
+ # [J3][PRO] Fixes issue with scrolling not working in responsive view
+
+28-Oct-2014 : v4.0.1
+ # [J2][FREE] Fixes issue with javascript error about nn_tabs_urlscroll
+
+25-Oct-2014 : v4.0.0
+ + Adds custom.css with examples of custom styling for own classnames
+ + Adds handling of normal links to tabs to not reload the page
+ + [J3] Adds ability to set a separate title-active and title-inactive
+ + [J3] Adds opening of parent tabs and sliders when using an url hash to a nested text anchor
+ + [J3][PRO] Adds ability to set an access restriction on tabs with the access= or usercroup= attribute
+ ! [J3] Removes bottom margins on tab content (leave to custom css)
+ ^ [J3] Refactors code
+ ^ [J3][PRO] Improves handling of url hashes and opening of parent tabs and sliders
+ # Fixes issue with plugin not being run over introtext/fulltext on onContentPrepare event
+ # Fixes issue with plugin not working on jDownloads frontend view
+ # [J2][PRO] Fixes issue with page not scrolling when using url hashes
+ # [J3] Fixes issue with active by url/cookie not working when using caching
+ # [J3][PRO] Fixes issue with fade not working on content
+
+22-Sep-2014 : v3.7.1
+ # [J3][PRO] Fixes issue with special characters causing javascript issues when using cookies
+
+19-Sep-2014 : v3.7.0
+ + [J3] Adds option to set a grey background to inactive tabs
+ ^ Improves handling of Google Maps
+ ^ [J3] Improves css styling
+ ^ [J3][PRO] Improves the way the responsive stacked tabs look and work
+ # Fixes issue with mobile styling using wrong max-width (768px instead of 767px)
+ # Fixes issue with php warning about Unknown modifier '.' in protect.php
+ # [J3][PRO] Fixes issue with height of content not being correct when using left/right in combination with no outlines
+ # [J3][PRO] Fixes issue with hover borders not being right for bottom/right/left classes
+
+19-Aug-2014 : v3.6.7
+ # [J3] Fixes issue with active attribute not working
+
+18-Aug-2014 : v3.6.6
+ ^ Updates translations: et-EE
+ # Fixes issue with tags being converted in com_myjspace edit forms
+ # [J2] Fixes issue with errors after upgrade to Joomla 3
+ # [J3] Fixes issue with content of nested tabs not showing when using url hashes
+ # [J3][PRO] Fixes issue with content heights not being set on nested tab sets with left/right positioned tabs
+
+27-Jul-2014 : v3.6.5
+ # Fixes backwards compatibility with old syntax alias: (instead of alias=)
+
+19-Jul-2014 : v3.6.4
+ # Fixes issue with NoNumber Framework not getting installed
+ # Fixes issue with manifest cache (version and update info) not being updated
+
+18-Jul-2014 : v3.6.3
+ ^ Updates translations: nl-NL
+ # Fixes issue with fatal error when the NoNumber Framework is not installed
+
+16-Jul-2014 : v3.6.2
+ # Fixes issue with alias not being overrideable
+ # Fixes issue with first tab not working when title only contains an image
+
+26-Jun-2014 : v3.6.1
+ # Fixes issue with custom editor button text not working
+ # Fixes issue with enable in frontend editor button option not working
+
+25-Jun-2014 : v3.6.0
+ ^ Refactors code
+ ^ Updates translations: el-GR, fr-FR, lt-LT, pt-BR
+ # [PRO] Fixes issue with error about in_array
+ # [J2] Fixes issue with errors after upgrade to Joomla 3
+ # [J3] Fixes issue with sliders not opening on url hash
+ # [J3] Fixes issue with tags not being handled in search results
+
+23-May-2014 : v3.5.3
+ ! [J3] Removes compatibility for Joomla 3 versions under 3.2.2
+ ^ Updates translations: et-EE, id-ID, sv-SE
+
+16-May-2014 : v3.5.2
+ # [J2][PRO] Fixes issue with url hashes being set to 'undefined' in hover mode
+ # [J3] Fixes missing TAB_POSITIONING_HANDLES language strings
+
+15-May-2014 : v3.5.1
+ # [J3][FREE] Fixes issue with php notice about Undefined property `$positioning`
+
+14-May-2014 : v3.5.0
+ + [J3][PRO] Adds ability to set position of the tabs (top, bottom, left, right)
+ ^ Updates translations: fr-FR, id-ID, nl-NL
+
+15-Apr-2014 : v3.4.4
+ ^ [J3] Improves scrolling to named anchor links within tabs and opening parent tabs
+ # Fixes issue with html structure issues when tags are directly inside html 5 elements
+ # [J3] Fixes css issue in Old School styling
+
+11-Apr-2014 : v3.4.3
+ + Adds translations: id-ID
+ ^ Updates translations: fr-FR, sl-SI
+ ^ [J3] Adds some styling to prevent tabs from inheriting templates list element styles
+ ^ [J3][PRO] Changes Responsive view setting to be on by default
+ # [J3] Fixes issue with multiple active tabs when using url option
+
+25-Feb-2014 : v3.4.2
+ # [J2] Fixes issue with tabs showing empty on page load when using cookies
+ # [J3] Fixes issue with styling of justified tabs
+ # [J3][PRO] Fixes issue with responsive list still showing when using old school styling
+
+19-Feb-2014 : v3.4.1
+ ^ [J3][PRO] Changes default setting for responsive view to off
+ # [J3][PRO] Fixes issue with responsive view being applied when using old school styling
+
+18-Feb-2014 : v3.4.0
+ + [J3][PRO] Adds ability to set scroll offset
+ + [J3][PRO] Adds ability to use an alternative list view for mobile screen sizes (responsive view)
+ ^ Changes way the url hash ids are created (no longer prepended with numbers)
+ ^ Cleans up some code (syntax)
+ ^ Updates translations: sv-SE
+ # Fixes issue with `$` chars in titles
+ # Fixes issue with active class not setting the tab to active by default
+ # [J2] Fixes issue with NN_PROTECTED tags being left in content
+ # [J3] Fixes issue with tabs not being displayed as full width tabs when using alignment styles
+ # [J3] Fixes some styling issues on mobile view
+
+21-Jan-2014 : v3.3.8
+ ^ Updates translations: nl-NL
+ # Fixes issue with some missing language strings in some occasions
+ # [J2][PRO] Fixes issue with not being able to click (touch) to toggle when using hover mode
+ # [J3] Fixes issue with main classname being added to first slide
+ # [J3] Fixes issue with overlapping content when wider than tab content area
+ # [J3] Fixes some styling issues
+
+27-Dec-2013 : v3.3.7
+ + Adds translations: cs-CZ, nb-NO
+ ^ Improves some code in NoNumber Framework which improves page load speed
+ ^ [J3] Adds ability to set nooutline param for tab set on first tab
+ ^ [J3] Changes focus style
+ # Fixes installation error about duplicate entry on some MySQL 5.6 setups
+ # [J3] Fixes some incompatibility issues with Bootstrap 3
+
+07-Nov-2013 : v3.3.6
+ ^ Updates translations: lt-LT
+ # Fixes issue with tags in Sourcerer code being converted
+ # Fixes issue with tags in some text and textarea fields being converted
+
+22-Oct-2013 : v3.3.5
+ ^ Updates translations: sl-SI
+ # [J2][PRO] Fixes issue with javascript errors when using cookies option
+
+21-Oct-2013 : v3.3.4
+ # Fixes issue with javascript errors causing Tabs to stop functioning
+
+19-Oct-2013 : v3.3.3
+ ! Removes some redundant css
+ # [J3] Fixes issue with uncompressed css file having wrong file name
+
+16-Oct-2013 : v3.3.2
+ # [FREE] Fixes issue with update failing due to false message about using old version from before Free/Pro
+
+15-Oct-2013 : v3.3.1
+ # [FREE] Fixes issue with javascript errors causing Tabs to stop functioning
+
+15-Oct-2013 : v3.3.0
+ + Adds translations: ar-AA, ar-SA, bn-BD, hr-HR, pt-PT, ro-RO, sk-SK, tr-TR, uk-UA
+ + [PRO] Adds option to disable on selection of components
+ ^ Changes javascript minification to use Google Closure
+ ^ Sets focus on tab title when activating tab via tablink or url
+ ^ Updates translations: bg-BG, ca-ES, da-DK, el-GR, es-ES, fr-FR, it-IT, nl-NL, pl-PL, ru-RU, sv-SE, zh-TW
+ # Fixes issue with opening tags not being converted on some setups
+ # Fixes issue with tags not being handled when site has invalid html structure
+ # Fixes issue with tags sometimes appearing in title tags and title attributes
+ # [J3] Fixes issue with floating content overlapping content border
+ # [J3][PRO] Fixes issue with cookies not working
+
+13-Aug-2013 : v3.2.5
+ # [J3] Fixes issue with tablinks not working
+
+08-Aug-2013 : v3.2.4
+ # Improves the way the urls on the links are created (full url + hash)
+ # [J3] Fixes issue with editor button not getting styled correctly on TinyMCE
+
+01-Jul-2013 : v3.2.3
+ # Fixes issue with opening active tab by url not working properly
+
+28-Jun-2013 : v3.2.2
+ # [J2] Fixes issue with tabs no longer working on Internet Explorer
+
+28-Jun-2013 : v3.2.1
+ ! [J2] Removes compatibility for Joomla 2.5 versions lower than 2.5.10
+ ! [J3.0] Removes compatibility for Joomla 3 versions lower than 3.1.0
+ ^ Made parent tabs open too when opening nested tabs via url/tablink
+ # Fixes issue with icons missing in alignment option
+
+17-Jun-2013 : v3.2.0
+ + Adds Alignment options for handles (left, right, center, justify)
+ + Adds translations: pl-PL
+ ^ Improves minification of js files
+ ^ Updates translations: fa-IR
+ ^ [J2] Converts images in (editor) buttons to font icons
+ # [J2] Fixes issue with outline setting having effect when Old School styling is not selected
+
+15-May-2013 : v3.1.3
+ # Fixes issue with tags not being 'unprotected'
+
+15-May-2013 : v3.1.2
+ # Fixes issue with tablinks not working in article when tab set is in a module
+ # Fixes issue with tabs being converted in some admin forms when plugin is enabled for admin side
+ # [J2] Fixes issue with a document.write script conflicting with other scripts, like modals
+ # [J3] Fixes issue with links inside the tab titles messing up layout
+ # [J3] Fixes issue with remembering active tab by cookies not working
+
+22-Apr-2013 : v3.1.1
+ # Fixes issue with installation manifest details not updating
+ # Fixes issue with update manager not seeing latest version (caused by manifest)
+
+18-Apr-2013 : v3.1.0
+ + Adds ability to enable the plugin in the administrator side (no guarantees on effects)
+ ^ Improves code
+ # Fixes issue with dollar signs in the tab titles
+ # Fixes issue with heading tags in the tab titles messing up the html structure
+
+28-Mar-2013 : v3.0.8
+ + Adds classes and rel attribute to the Tab Links
+ ^ Changes messaging on installation on unsupported Joomla versions
+ ^ Cleans up some code (syntax)
+ # Fixes issue with spaces around classes/attributes in tag causing it to fail
+
+13-Mar-2013 : v3.0.7
+ ^ Increases bottom margin of tab sets
+ # [J3] Fixes typo in override paths in comment in css files
+
+04-Mar-2013 : v3.0.6
+ # [J3] Fixes issue with Tabs not working when bootstrap css is not loaded when using old style
+
+28-Feb-2013 : v3.0.5
+ # [J3] Fixes issue with Tabs not working when bootstrap css is not loaded
+ # [J3] Fixes issue with browser scrolling to anchor when scrolling by url is off
+
+25-Feb-2013 : v3.0.4
+ # [J2] Fixes issue with color/custom styling not working correctly
+
+24-Feb-2013 : v3.0.3
+ + Adds classes primary (same as blue) and error (same as warning)
+ + [J3] Adds styling for better cross-template compatibility
+ ^ Improves less/css markup
+ ^ Updates translations: sl-SI
+ # [J3] Fixes issue editor button plugin settings giving errors
+ # [J3] Fixes issue with css being loaded on pages where Tabs is not used
+
+09-Feb-2013 : v3.0.2
+ # [J3] Fixes issue with errors in javascript on pages where Tabs is not used
+ # [J3][FREE] Fixes issue with php warnings about undifined properties use_cookies and set_cookies
+
+08-Feb-2013 : v3.0.1
+ # [FREE] Fixes issue with errors in javascript
+
+08-Feb-2013 : v3.0.0
+ + [J2] Adds classes info, success warning and danger
+ + [J2] Adds classes orange and red
+ + [J2] Adds less files for generating css files
+ + [J2] Adds new styling based on Bootstrap (moved old styling to old.css)
+ + [J3] Adds Joomla 3 support
+ ! [J1.5] Removes Joomla 1.5 support
+ ! [J2] Removes rounded and radius styling options
+ ! [J2] Removes some redundant css styles being applied in output
+ ^ Changes default syntax from `{tab=...}` to `{tab ...}`
+ ^ Renames extension from Tabber to Tabs
+ ^ Updates translations: pt-BR, th-TH
+ ^ [J2] Changes default slide and fade speeds to 250 (=faster)
+ ^ [J2] Changes location of certain options
+ ^ [J2] Minifies css and js files
+ # [J2] Fixes issue with colons in titles being replaced by `[[e]]`
+
+29-Dec-2012 : v2.2.1
+ ! [J1.5] LAST VERSION COMPATIBLE WITH JOOMLA 1.5
+ ! [J2] Removes versioned media files option
+ # [J2] Fixes error about XML setup file on first install
+
+22-Dec-2012 : v2.2.0
+ ^ [J2] Cleans up code
+ ^ [J2] Moves media files to Joomla media folder
+ # [J2] Fixes issue with errors with Phoca PDF
+
+21-Sep-2012 : v2.1.5
+ # Fixes issue with scroll on tablink not working when tab titles are hidden
+ # Fixes issue with tab not working when title contains a comma
+ # Fixes issue with tags being handled in edit for of jcal, jevent and some others
+
+06-Sep-2012 : v2.1.4
+ ^ Adds hash to url when mode is hover too
+ # Fixes issue with handling of dollar signs in the titles
+
+20-Jul-2012 : v2.1.3
+ # Fixes issue with certain titles returning empty (since v2.1.1)
+
+19-Jul-2012 : v2.1.1
+ ! Removes ability to install on Joomla 1.6 and 1.7
+ ! Removes ability to install on setups with php 5.2 or lower
+ ^ Cleans a lot of code
+ ^ Updates translations: es-ES, nl-NL
+ # Fixes incorrect css examples for mystyle
+ # Fixes issue with tags being interpreted inside the Josetta form
+ # [PRO] Fixes issue with page jumping to top in hover mode
+
+01-May-2012 : v2.1.0
+ ^ Increases page load speed by changing how xml files are loaded
+
+26-Apr-2012 : v2.0.5
+ # Fixes issue with javascript error on IE7
+
+17-Apr-2012 : v2.0.4
+ + Adds translations: zh-TW
+ ^ Improves protecting of edit forms to only protect fields (so tags work outside form fields)
+ ^ Updates translations: fa-IR
+ # Fixes issue with some styling options not having effect (border color, radius, rtl)
+
+13-Apr-2012 : v2.0.3
+ + Adds translations: fa-IR
+ # Fixes issue with scripts not getting loaded if tags are only used outside content are
+
+12-Apr-2012 : v2.0.2
+ ^ Updates translations: da-DK
+ # Fixes issue with multiple same titled tabs on same page not working
+
+10-Apr-2012 : v2.0.1
+ # SECURITY FIX: Fixes URL injection vulnerability in NoNumber Framework
+
+07-Apr-2012 : v2.0.0
+ + Adds ability to set the alias in the tag via |alias:... (used for urls)
+ ^ Changes layout of settings
+ ^ Changes some language strings
+ ^ Cleans up code syntax
+ ^ Improves handling of other plugin style tags inside the `{tab}` tag
+ ^ Now available as Pro and Free version
+ ^ Updates translations: de-DE
+ # Fixes issue with dollar signs not appearing in output
+ # Fixes issue with mootools being loaded on pages even when not necessary
+
+05-Mar-2012 : v1.8.6
+ ^ Cleans up code syntax
+ ^ Updates translations: pt-BR
+ # Fixes issue with tags being messed up in frontend editor
+
+26-Jan-2012 : v1.8.5
+ + Adds translations: et-EE
+ # Fixes issue with Tab links not working with tabs with special characters
+ # Fixes issue with image-only tab titles (thanks to Justin Niebuhr)
+ # Fixes issue with installer not removing the folder/zip from the tmp
+ # Fixes issue with links not working correctly on all setups due to not using JRoute
+ # [J1.7+] Fixes issue with errors on pdf pages
+
+09-Jan-2012 : v1.8.4
+ # Fixes issue with line-height of the tab titles being jumpy on some templates
+
+16-Dec-2011 : v1.8.3
+ ^ Cleans up more code
+ ^ Updates translations: ru-RU, th-TH
+ # Fixes issue with html entities in title converting to url hash
+ # Fixes issue with invalid w3c html markup (ref attribute in li element)
+
+18-Nov-2011 : v1.8.2
+ + Adds option to overrule mode by adding click or hover in tag
+ ^ Updates translations: sl-SI
+ # Fixes issue with hash fragment still being added to url when option is switched off
+
+09-Nov-2011 : v1.8.1
+ + Adds option to overrule the default code the editor button inserts
+ ^ Improves cleanup of scripts/styles when there are no tabs on the page
+ ^ Updates translations: de-DE
+ # Fixes issue with hash fragment links not working in all urls with variables
+ # Fixes issue with typo in css file (.grey instead of .mystyle)
+
+06-Nov-2011 : v1.8.0
+ + Adds active tab as hash fragments to url (and option to switch this off)
+ ^ Cleans code syntax (no longer guaranteed support for php 5.2.x and lower)
+ ^ Improves cleanup of scripts/styles when there are no tabs on the page
+ ^ Improves matching of titles with special characters via url
+ ^ Updates translations: fr-FR
+ # Fixes issue with tags being handled in some edit forms
+
+17-Oct-2011 : v1.7.1
+ + Adds translations: sv-SE, th-TH
+ ^ Updates translations: es-ES
+ # Fixes SECURITY issue in NoNumber Framework plugin
+ # Fixes issue with w3c validator giving false negatives on html output
+
+08-Oct-2011 : v1.7.0
+ + Adds ability to set tabs up to change on mouse hover instead of click
+ ^ Cleans up some code (like no more use of DS)
+ ^ Improves installer
+ ^ Moves translation language files to main package (no more language packs)
+ # Fixes issue with tags being handled in editor button popup
+ # Fixes issue with the tablink tag not working outside the area where the tabs are
+
+16-Sep-2011 : v1.6.0
+ ^ Changes NoNumber Elements plugin to NoNumber Framework
+ ^ Changes way MooTools version is detected
+ ^ Improves handling of surrounding whitespace
+ ^ Improves initial display before script is loaded/executed
+ ^ Moves common language strings to NoNumber Framework files
+ # Fixes issue with class names showing in print view
+ # Fixes issue with invalid characters in element ids (not passing w3c validation)
+ # Fixes issue with javascript files breaking when using js/css compression
+
+29-Jul-2011 : v1.5.2
+ # Fixes issue with surrounding html tags potentially breaking html structure
+
+21-Jul-2011 : v1.5.1
+ + Adds option to not use outlines
+ + Adds option to use versioned scripts and stylesheets
+ ^ Improves handling of styling on tags
+ ^ Improves handling of tags in feeds
+ ^ Improves how inactive content is hidden
+ # Fixes issue with error on servers that don't have mbstring functions enabled
+ # Fixes issue with some content not being rendered correctly in inactive tabs
+
+05-Jul-2011 : v1.5.0
+ + Adds cookie support for remembering active tabs
+ + Adds option to show tabs in RTL order
+ ^ Changes layout of options
+ ^ Changes use of elements
+ ^ Improves handling of print and pdf pages
+ # Fixes issue with JEventHandler error on some setups
+ # Fixes issue with images and other html in titles
+ # Fixes issue with inactive content showing shortly before page is loaded
+
+06-Jun-2011 : v1.4.2
+ # Fixes issue with tabs using custom ending tag no longer working (since v1.4.1)
+ # Fixes version number
+
+06-Jun-2011 : v1.4.1
+ + Adds option to define the tag type used for the titles
+ + Adds option to overrule the window sliding per tab
+ ^ Adds better handling of tags when closing tag is not found
+ # Fixes issue with file inclusion not working on some Joomla 1.5 setups
+
+23-May-2011 : v1.4.0
+ + Adds more comments to css file
+ + Joomla 1.7 compatible!
+ ! Removes force mootools 1.2 option
+ ^ Changes way the mootools version is detected
+ # Fixes issue with setting active item via number / set in url not working correctly
+
+30-Mar-2011 : v1.3.2
+ + Adds option to activate tab via url using the number of the tab
+ # Fixes issue plugin being executed on raw format pages
+ # Fixes issue with bottom border line sometimes disappearing
+ # Fixes issue with problems when html has multiple body tags
+ # Fixes issue with tabs being handled on print page
+
+28-Feb-2011 : v1.3.1
+ ^ Changes language files to be J1.6 ready
+ # Fixes issue with html tags in title messing up code
+ # Fixes issue with leading/trailing spaces/enters on tags creating unwanted whitespace
+ # Fixes issue with second tab not opening correctly when first tab is a link
+
+18-Feb-2011 : v1.3.0
+ + Adds name of tab to url status when hovering over tab label
+ + Adds option to switch off scrolling to tab on url (and option to overrule by adding a + after the tab)
+ + Adds possibility to link tabs to other pages
+ # Fixes issue with tags being interpreted in frontend editor fields with very large contents
+
+11-Feb-2011 : v1.2.0
+ + Adds ability to nest tabs
+ + Adds scrolling to tab on url (and option to not scroll by adding a - after the tab)
+ ^ Adds extra class to style content for before script is loaded or fails
+ ^ Besides {tab=, now {tabs= will also work as tag
+ ^ Changes extension icon / logo
+ # Fixes issue with leading/trailing spaces in the tab titles
+ # Fixes issues with tab matching when using tab number
+ # Fixes issues with tab matching with special characters
+ # Fixes some issues with loading problems on IE
+
+13-Dec-2010 : v1.1.1
+ # Fixes issue with conflicting characters in language file
+
+10-Dec-2010 : v1.1.0
+ + Adds option to not force load MooTools 1.2 ready script
+ + Adds option to not load core MooTools script
+ + Adds option to set line color in settings
+ + Adds option to set rounded border radius in settings
+ # Cleans up some code
+ # Fixes issue with elements showing outside content area on IE7
+ # Fixes issue with javascript errors on IE7
+ # Fixes issues with document being called to early
+ # Fixes some issues with loading of language strings
+
+03-Dec-2010 : v1.0.3
+ # Fixes issue with elements showing outside content area on IE
+ # Fixes issue with setting active tabs via url not working with all Cyrillic characters
+ # Fixes issue with tabs not working on IE8
+ # Fixes some file encoding stuff
+
+26-Nov-2010 : v1.0.2
+ # Fixes issue with height being fixed instead of auto when using MooTools 1.2
+
+25-Nov-2010 : v1.0.1
+ # Fixes issue with height of first open tab being fixed instead of auto
+
+25-Nov-2010 : v1.0.0
+ + Adds checks to see if NoNumber Elements plugin is installed/enabled
+ + Adds classes to content to enable styling per tab
+ + Adds fade effect and option to set speed of it
+ + Adds option to scroll to top of tab when opened
+ + Adds option to set rounded corners on/off
+ + Adds scrolling on tab links `{tablink=...}`
+ + Adds slide effect and option to set speed of it
+ ^ Changes stylesheet a bit
+ ^ Fixes and updated all language strings
+ # Fixes issue with tags being handled in edit fields
+
+16-Nov-2010 : v0.3.0
+ # Fixes extension causing pages to break on some setups
+ # Fixes issue with not working in some forms (where they should)
+
+15-Nov-2010 : v0.2.3
+ # Fixes issue with tabs not being handled outside component area
+ # Fixes some css styling issues
+
+12-Nov-2010 : v0.2.2
+ + Adds option to make tab active by number in url (tab=2)
+ # Fixes issue with active tabs when using Cyrillic titles
+ # Fixes issue with multiple classes in tag
+
+11-Nov-2010 : v0.2.1
+ + Adds option to select tag delimiter '=' or space
+ # Fixes issue with editor buttons messing up html with some editors
+ # Fixes issue with some tags being handled in editor field
+
+08-Nov-2010 : v0.2.0
+ + Adds possibility to set initial active tab
+ ^ Changes code to make it lighter
+ ^ Changes styling of active tabs (higher than others)
+ ^ Changes toggling of tabs to MooTools hide/show actions (prevents some problems)
+ ^ Made MooTools 1.2 compatible
+ # Fixes issue with anchor tags not being valid html
+ # Fixes issue with floating content overlapping content border
+ # Fixes issue with multiple sets of tabs
+ # Fixes issue with tab content area not resizing to dynamic content
+ # Fixes issue with tabs sometimes not being handled in IE (domready triggers too soon)
+ # Fixes issues with paragraph tags surrounding tags causing valid html
+ # Fixes layout issues in IE
+
+03-Nov-2010 : v0.1.1
+ ^ Improves javascript
+ # Fixes Undefined property error
+ # Fixes issue with incompatibility with MooTools Upgrade plugin
+
+24-Oct-2010 : v0.1.0
+ + First beta release
