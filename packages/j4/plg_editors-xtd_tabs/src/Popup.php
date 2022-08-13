@@ -9,11 +9,12 @@
  * @license         http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL
  */
 
-namespace RegularLabs\Plugin\EditorButton\Tabs\Popup;
+namespace RegularLabs\Plugin\EditorButton\Tabs;
 
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory as JFactory;
+use Joomla\CMS\Form\Form as JForm;
 use Joomla\CMS\Language\Text as JText;
 use RegularLabs\Library\Document as RL_Document;
 use RegularLabs\Library\EditorButtonPopup as RL_EditorButtonPopup;
@@ -21,9 +22,10 @@ use RegularLabs\Library\RegEx as RL_RegEx;
 
 class Popup extends RL_EditorButtonPopup
 {
-    var $require_core_auth = false;
+	protected $extension         = 'tabs';
+    protected $require_core_auth = false;
 
-    public function loadScripts()
+    protected function loadScripts()
     {
         // Tag character start and end
         [$tag_start, $tag_end] = explode('.', $this->params->tag_characters);
@@ -44,12 +46,17 @@ class Popup extends RL_EditorButtonPopup
         ";
         RL_Document::scriptDeclaration($script);
 
-        RL_Document::script('tabs/popup.min.js', '8.2.2');
+        RL_Document::script('tabs.popup');
+        
+		$xmlfile = dirname(__FILE__, 2) . '/forms/popup.xml';
+
+		$this->form = new JForm('tabs');
+		$this->form->loadFile($xmlfile, 1, '//config');
     }
 
-    public function loadStyles()
+    protected function loadStyles()
     {
-        RL_Document::style('tabs/popup.min.css', '8.2.2');
+        RL_Document::style('tabs.popup');
     }
 }
 

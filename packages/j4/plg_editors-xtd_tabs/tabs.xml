@@ -10,6 +10,8 @@
     <copyright>Copyright © 2022 Regular Labs - All Rights Reserved</copyright>
     <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
 
+	<namespace path="src">RegularLabs\Plugin\EditorButton\Tabs</namespace>
+
     <scriptfile>script.install.php</scriptfile>
 
     <updateservers>
@@ -22,9 +24,8 @@
         <file plugin="tabs">tabs.php</file>
         <file>fields.xml</file>
         <file>helper.php</file>
-        <file>popup.php</file>
-        <file>popup.tmpl.php</file>
         <file>script.install.helper.php</file>
+		<folder>src</folder>
         <folder>language</folder>
     </files>
 

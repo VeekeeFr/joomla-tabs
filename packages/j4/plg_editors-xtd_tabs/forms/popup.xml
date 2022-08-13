@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<config addfieldpath="/libraries/regularlabs/fields">
+<config addfieldpath="RegularLabs\Library\Form\Field">
     <fieldset name="tab_notice">
         <field name="@note__title_empty" type="note" class="alert alert-warning"
                description="TAB_TITLE_EMPTY"
