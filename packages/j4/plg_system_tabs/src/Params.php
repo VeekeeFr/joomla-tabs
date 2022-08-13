@@ -14,7 +14,7 @@ namespace RegularLabs\Plugin\System\Tabs;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory as JFactory;
-use RegularLabs\Library\ParametersNew as RL_Parameters;
+use RegularLabs\Library\Parameters as RL_Parameters;
 use RegularLabs\Library\PluginTag as RL_PluginTag;
 use RegularLabs\Library\RegEx as RL_RegEx;
 use RegularLabs\Library\Uri as RL_Uri;

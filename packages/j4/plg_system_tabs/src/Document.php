@@ -49,11 +49,11 @@ class Document
 
         RL_Document::scriptOptions($options, 'Tabs');
 
-        RL_Document::script('tabs/script.min.js', ($params->media_versioning ? '8.2.2' : ''), [], [], $params->load_jquery);
+        RL_Document::script('tabs.script');
 
         if ($params->load_stylesheet)
         {
-            RL_Document::stylesheet('tabs/style.min.css', ($params->media_versioning ? '8.2.2' : ''));
+            RL_Document::style('tabs.style');
         }
 
     }
