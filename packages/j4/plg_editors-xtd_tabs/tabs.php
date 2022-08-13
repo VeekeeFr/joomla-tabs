@@ -24,7 +24,7 @@ if ( ! is_file(JPATH_LIBRARIES . '/regularlabs/autoload.php')
 
 require_once JPATH_LIBRARIES . '/regularlabs/autoload.php';
 
-if ( ! RL_Document::isJoomlaVersionAtLeast(3))
+if ( ! RL_Document::isJoomlaVersion(4))
 {
     RL_Extension::disable('tabs', 'plugin', 'editors-xtd');
 
