@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -14,90 +14,159 @@ namespace RegularLabs\Library;
 defined('_JEXEC') or die;
 
 use Exception;
+use Joomla\CMS\Factory as JFactory;
+use Joomla\CMS\HTML\HTMLHelper as JHtml;
 use Joomla\CMS\Language\Text as JText;
+use Joomla\Registry\Registry as JRegistry;
 use ReflectionClass;
-use RegularLabs\Library\ParametersNew as Parameters;
 
-/**
- * Class EditorButtonPopup
- * @package RegularLabs\Library
- */
 class EditorButtonPopup
 {
-    var $extension         = '';
-    var $params            = null;
-    var $require_core_auth = true;
+	protected $extension         = '';
+	protected $main_type         = 'plugin';
+	protected $require_core_auth = true;
+	private   $_params           = null;
 
-    public function __construct($extension)
-    {
-        $this->extension = $extension;
-        $this->params    = Parameters::getPlugin($extension);
-    }
+	public function render()
+	{
+		if ( ! Extension::isAuthorised($this->require_core_auth))
+		{
+			throw new Exception(JText::_("ALERTNOTAUTH"));
+		}
 
-    public function render()
-    {
-        if ( ! Extension::isAuthorised($this->require_core_auth))
-        {
-            throw new Exception(JText::_("ALERTNOTAUTH"));
-        }
+		$this->params = $this->getParams();
 
-        if ( ! Extension::isEnabledInArea($this->params))
-        {
-            throw new Exception(JText::_("ALERTNOTAUTH"));
-        }
+		if ( ! Extension::isEnabledInArea($this->params))
+		{
+			throw new Exception(JText::_("ALERTNOTAUTH"));
+		}
 
-        $this->loadLibraryLanguages();
-        $this->loadLibraryScriptsStyles();
+		$this->loadLanguages();
 
-        $this->loadLanguages();
+		$doc             = Document::get();
+		$asset_manager   = Document::getAssetManager();
+		$direction       = $doc->getDirection();
+		$template_params = $this->getTemplateParams();
 
-        Document::style('regularlabs/popup.min.css');
+		// Get the hue value
+		preg_match('#^hsla?\(([0-9]+)[\D]+([0-9]+)[\D]+([0-9]+)[\D]+([0-9](?:.\d+)?)?\)$#i', $template_params->get('hue', 'hsl(214, 63%, 20%)'), $matches);
 
-        $this->loadScripts();
-        $this->loadStyles();
+		// Enable assets
+		$asset_manager->getRegistry()->addTemplateRegistryFile('atum', 1);
 
-        echo $this->renderTemplate();
-    }
+		$asset_manager->usePreset(
+			'template.atum.' . ($direction === 'rtl' ? 'rtl' : 'ltr')
+		)->addInlineStyle(':root {
+				--hue: ' . $matches[1] . ';
+				--template-bg-light: ' . $template_params->get('bg-light', '--template-bg-light') . ';
+				--template-text-dark: ' . $template_params->get('text-dark', '--template-text-dark') . ';
+				--template-text-light: ' . $template_params->get('text-light', '--template-text-light') . ';
+				--template-link-color: ' . $template_params->get('link-color', '--template-link-color') . ';
+				--template-special-color: ' . $template_params->get('special-color', '--template-special-color') . ';
+			}');
 
-    private function loadLibraryLanguages()
-    {
-        Language::load('plg_system_regularlabs');
-    }
+		// No template.js for modals
+		//$asset_manager->disableScript('template.atum');
 
-    private function loadLibraryScriptsStyles()
-    {
-        Document::loadPopupDependencies();
-    }
+		// Override 'template.active' asset to set correct ltr/rtl dependency
+		$asset_manager->registerStyle('template.active', '', [], [], ['template.atum.' . ($direction === 'rtl' ? 'rtl' : 'ltr')]);
 
-    public function loadLanguages()
-    {
-        Language::load('plg_editors-xtd_' . $this->extension);
-        Language::load('plg_system_' . $this->extension);
-    }
+		// Browsers support SVG favicons
+		$doc->addHeadLink(JHtml::_('image', 'joomla-favicon.svg', '', [], true, 1), 'icon', 'rel', ['type' => 'image/svg+xml']);
+		$doc->addHeadLink(JHtml::_('image', 'favicon.ico', '', [], true, 1), 'alternate icon', 'rel', ['type' => 'image/vnd.microsoft.icon']);
+		$doc->addHeadLink(JHtml::_('image', 'joomla-favicon-pinned.svg', '', [], true, 1), 'mask-icon', 'rel', ['color' => '#000']);
 
-    public function loadScripts()
-    {
-    }
+		Document::script('regularlabs.admin-form');
+		Document::style('regularlabs.admin-form');
+		Document::style('regularlabs.popup');
 
-    public function loadStyles()
-    {
-    }
+		$this->init();
+		$this->loadScripts();
+		$this->loadStyles();
 
-    private function renderTemplate()
-    {
-        ob_start();
-        include $this->getDir() . '/popup.tmpl.php';
-        $html = ob_get_contents();
-        ob_end_clean();
+		echo $this->renderTemplate();
+	}
 
-        return $html;
-    }
+	protected function getParams()
+	{
+		if ( ! is_null($this->_params))
+		{
+			return $this->_params;
+		}
 
-    private function getDir()
-    {
-        // use static::class instead of get_class($this) after php 5.4 support is dropped
-        $rc = new ReflectionClass(get_class($this));
+		switch ($this->main_type)
+		{
+			case 'component':
+				if (Protect::isComponentInstalled($this->extension))
+				{
+					// Load component parameters
+					$this->_params = Parameters::getComponent($this->extension);
+				}
+				break;
 
-        return dirname($rc->getFileName());
-    }
+			case 'plugin':
+			default:
+				if (Protect::isSystemPluginInstalled($this->extension))
+				{
+					// Load plugin parameters
+					$this->_params = Parameters::getPlugin($this->extension);
+				}
+				break;
+		}
+
+		return $this->_params;
+	}
+
+	protected function loadLanguages()
+	{
+		Language::load('joomla', JPATH_ADMINISTRATOR);
+		Language::load('plg_system_regularlabs');
+		Language::load('plg_editors-xtd_' . $this->extension);
+		Language::load('plg_system_' . $this->extension);
+	}
+
+	protected function getTemplateParams()
+	{
+		$db = JFactory::getDbo();
+
+		$query = $db->getQuery(true)
+			->select($db->quoteName('s.params'))
+			->from($db->quoteName('#__template_styles', 's'))
+			->where($db->quoteName('s.template') . ' = ' . $db->quote('atum'))
+			->order($db->quoteName('s.home'));
+		$db->setQuery($query, 0, 1);
+		$template = $db->loadObject();
+
+		return new JRegistry($template->params ?? null);
+	}
+
+	protected function init()
+	{
+	}
+
+	protected function loadScripts()
+	{
+	}
+
+	protected function loadStyles()
+	{
+	}
+
+	private function renderTemplate()
+	{
+		ob_start();
+		include dirname($this->getDir()) . '/tmpl/popup.php';
+		$html = ob_get_contents();
+		ob_end_clean();
+
+		return $html;
+	}
+
+	private function getDir()
+	{
+		// use static::class instead of get_class($this) after php 5.4 support is dropped
+		$rc = new ReflectionClass(get_class($this));
+
+		return dirname($rc->getFileName());
+	}
 }

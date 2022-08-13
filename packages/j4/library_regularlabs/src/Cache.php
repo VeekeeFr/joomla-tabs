@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -13,99 +13,237 @@ namespace RegularLabs\Library;
 
 defined('_JEXEC') or die;
 
+use Exception;
+use Joomla\CMS\Cache\CacheControllerFactoryInterface as JCacheControllerFactoryInterface;
+use Joomla\CMS\Cache\Controller\OutputController as JOutputController;
 use Joomla\CMS\Factory as JFactory;
 
-/**
- * Class Cache
- * @package    RegularLabs\Library
- * @deprecated Use CacheNew
- */
 class Cache
 {
-    static $cache = [];
-    static $group = 'regularlabs';
+	/**
+	 * @var array
+	 */
+	static $cache = [];
+	/**
+	 * @var [JOutputController]
+	 */
+	private $file_cache_controllers = [];
+	/**
+	 * @var bool
+	 */
+	private $force_caching = true;
+	/**
+	 * @var string
+	 */
+	private $group;
+	/**
+	 * @var string
+	 */
+	private $id;
+	/**
+	 * @var int
+	 */
+	private $time_to_life_in_seconds = 0;
+	/**
+	 * @var bool
+	 */
+	private $use_files = false;
 
-    // Is the cached object in the cache memory?
+	/**
+	 * @param $id
+	 */
+	public function __construct($id = null, $group = 'regularlabs')
+	{
+		if (is_null($id))
+		{
+			$caller = debug_backtrace()[1];
+			$id     = [
+				$caller['class'],
+				$caller['function'],
+				$caller['args'],
+			];
+		}
 
-    public static function get($id)
-    {
-        $hash = md5($id);
+		if ( ! is_string($id))
+		{
+			$id = json_encode($id);
+		}
 
-        if ( ! isset(self::$cache[$hash]))
-        {
-            return false;
-        }
+		$this->id    = md5($id);
+		$this->group = $group;
+	}
 
-        return is_object(self::$cache[$hash]) ? clone self::$cache[$hash] : self::$cache[$hash];
-    }
+	/**
+	 * @return bool
+	 */
+	public function exists()
+	{
+		if ( ! $this->use_files)
+		{
+			return $this->existsMemory();
+		}
 
-    // Get the cached object from the cache memory
+		return $this->existsMemory() || $this->existsFile();
+	}
 
-    public static function has($id)
-    {
-        return isset(self::$cache[md5($id)]);
-    }
+	/**
+	 * @return bool
+	 */
+	private function existsMemory()
+	{
+		return isset(static::$cache[$this->id]);
+	}
 
-    // Save the cached object to the cache memory
+	/**
+	 * @return bool
+	 */
+	private function existsFile()
+	{
+		if (JFactory::getApplication()->get('debug') || JFactory::getApplication()->input->get('debug'))
+		{
+			return false;
+		}
 
-    public static function read($id)
-    {
-        if (JFactory::getApplication()->get('debug'))
-        {
-            return false;
-        }
+		return $this->getFileCache()->contains($this->id);
+	}
 
-        $hash = md5($id);
+	/**
+	 * @return JOutputController
+	 */
+	private function getFileCache()
+	{
+		$options = [
+			'defaultgroup' => $this->group,
+		];
 
-        if (isset(self::$cache[$hash]))
-        {
-            return self::$cache[$hash];
-        }
+		if ($this->time_to_life_in_seconds)
+		{
+			$options['lifetime'] = $this->time_to_life_in_seconds;
+		}
 
-        $cache = JFactory::getCache(self::$group, 'output');
+		if ($this->force_caching)
+		{
+			$options['caching'] = true;
+		}
 
-        return $cache->get($hash);
-    }
+		$id = json_encode($options);
 
-    // Get the cached object from the Joomla cache
+		if (isset($this->file_cache_controllers[$id]))
+		{
+			return $this->file_cache_controllers[$id];
+		}
 
-    public static function write($id, $data, $time_to_life_in_minutes = 0, $force_caching = true)
-    {
-        if (JFactory::getApplication()->get('debug'))
-        {
-            return $data;
-        }
+		$this->file_cache_controllers[$id] = JFactory::getContainer()
+			->get(JCacheControllerFactoryInterface::class)
+			->createCacheController('output', $options);
 
-        $hash = md5($id);
+		return $this->file_cache_controllers[$id];
+	}
 
-        self::$cache[$hash] = $data;
+	/**
+	 * @return null|mixed
+	 */
+	public function get()
+	{
+		return $this->use_files
+			? $this->getFile()
+			: $this->getMemory();
+	}
 
-        $cache = JFactory::getCache(self::$group, 'output');
+	/**
+	 * @return false|mixed
+	 * @throws Exception
+	 */
+	private function getFile()
+	{
+		if ($this->existsMemory())
+		{
+			return $this->getMemory();
+		}
 
-        if ($time_to_life_in_minutes)
-        {
-            // convert ttl to minutes
-            $cache->setLifeTime($time_to_life_in_minutes * 60);
-        }
+		$data = $this->getFileCache()->get($this->id);
 
-        if ($force_caching)
-        {
-            $cache->setCaching(true);
-        }
+		$this->setMemory($data);
 
-        $cache->store($data, $hash);
+		return $data;
+	}
 
-        self::set($hash, $data);
+	/**
+	 * @return null|mixed
+	 */
+	private function getMemory()
+	{
+		if ( ! $this->existsMemory())
+		{
+			return null;
+		}
 
-        return $data;
-    }
+		$data = static::$cache[$this->id];
 
-    // Save the cached object to the Joomla cache
+		return is_object($data) ? clone $data : $data;
+	}
 
-    public static function set($id, $data)
-    {
-        self::$cache[md5($id)] = $data;
+	// Get the cached object from the Joomla cache
 
-        return $data;
-    }
+	/**
+	 * @param mixed $data
+	 *
+	 * @return mixed
+	 */
+	private function setMemory($data)
+	{
+		static::$cache[$this->id] = $data;
+
+		return $data;
+	}
+
+	/**
+	 * @param $data
+	 *
+	 * @return mixed
+	 */
+	public function set($data)
+	{
+		return $this->use_files
+			? $this->setFile($data)
+			: $this->setMemory($data);
+	}
+
+	/**
+	 * @param mixed $data
+	 *
+	 * @return mixed
+	 * @throws Exception
+	 */
+	private function setFile($data)
+	{
+		$this->setMemory($data);
+
+		if (JFactory::getApplication()->get('debug') || JFactory::getApplication()->input->get('debug'))
+		{
+			return $data;
+		}
+
+		$this->getFileCache()->store($data, $this->id);
+
+		return $data;
+	}
+
+	/**
+	 * @param int  $time_to_life_in_minutes
+	 * @param bool $force_caching
+	 *
+	 * @return $this
+	 */
+	public function useFiles($time_to_life_in_minutes = 0, $force_caching = true)
+	{
+		$this->use_files = true;
+
+		// convert ttl to minutes
+		$this->time_to_life_in_seconds = $time_to_life_in_minutes * 60;
+
+		$this->force_caching = $force_caching;
+
+		return $this;
+	}
 }

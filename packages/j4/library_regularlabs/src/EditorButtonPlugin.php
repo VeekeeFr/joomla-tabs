@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -14,151 +14,243 @@ namespace RegularLabs\Library;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory as JFactory;
+use Joomla\CMS\Language\Text as JText;
 use Joomla\CMS\Object\CMSObject as JObject;
 use Joomla\CMS\Plugin\CMSPlugin as JCMSPlugin;
+use Joomla\CMS\Session\Session;
 use ReflectionClass;
-use RegularLabs\Library\ParametersNew as Parameters;
 
-/**
- * Class EditorButtonPlugin
- * @package RegularLabs\Library
- */
 class EditorButtonPlugin extends JCMSPlugin
 {
-    var     $check_installed      = null;
-    var     $enable_on_acymailing = false;
-    var     $folder               = null; // The type of extension that holds the parameters
-    var     $main_type            = 'plugin'; // The types of extensions that need to be checked (will default to main_type)
-    var     $require_core_auth    = true; // Whether or not the core content create/edit permissions are required
-    private $_helper              = null; // The path to the original caller file
-    private $_init                = false; // Whether or not to enable the editor button on AcyMailing
+	protected $asset                = null;
+	protected $author               = null;
+	protected $button_icon          = '';
+	protected $check_installed      = null;
+	protected $editor_name          = '';
+	protected $enable_on_acymailing = false;
+	protected $folder               = null;
+	protected $main_type            = 'plugin';
+	protected $popup_class          = '';
+	protected $require_core_auth    = true;
+	private   $_params              = null;
+	private   $_pass                = null;
 
-    /**
-     * Display the button
-     *
-     * @param string $editor_name
-     *
-     * @return JObject|null A button object
-     */
-    public function onDisplay($editor_name)
-    {
-        if ( ! $this->getHelper())
-        {
-            return null;
-        }
+	public function __construct(&$subject, $config = [])
+	{
+		parent::__construct($subject, $config);
 
-        return $this->_helper->render($editor_name, $this->_subject);
-    }
+		$this->popup_class = $this->popup_class ?: 'Plugin.EditorButton.' . $this->getShortName() . '.Popup';
+	}
 
-    /*
-     * Below methods are general functions used in most of the Regular Labs extensions
-     * The reason these are not placed in the Regular Labs Library files is that they also
-     * need to be used when the Regular Labs Library is not installed
-     */
+	/**
+	 * Get the short name of the field class
+	 * PlgButtonFoobar => Foobar
+	 *
+	 * @return string
+	 */
+	private function getShortName()
+	{
+		return substr((new ReflectionClass($this))->getShortName(), strlen('PlgButton'));
+	}
 
-    /**
-     * Create the helper object
-     *
-     * @return object|null The plugins helper object
-     */
-    private function getHelper()
-    {
-        // Already initialized, so return
-        if ($this->_init)
-        {
-            return $this->_helper;
-        }
+	/**
+	 * Display the button
+	 *
+	 * @param string  $name   The name of the button to display.
+	 * @param string  $asset  The name of the asset being edited.
+	 * @param integer $author The id of the author owning the asset being edited.
+	 *
+	 * @return  JObject|false
+	 */
+	public function onDisplay($editor_name, $asset, $author)
+	{
+		$this->editor_name = $editor_name;
+		$this->asset       = $asset;
+		$this->author      = $author;
 
-        $this->_init = true;
+		if ( ! $this->passChecks())
+		{
+			return false;
+		}
 
-        if ( ! Extension::isFrameworkEnabled())
-        {
-            return null;
-        }
+		return $this->render();
+	}
 
-        if ( ! Extension::isAuthorised($this->require_core_auth))
-        {
-            return null;
-        }
+	/**
+	 * @return bool
+	 */
+	private function passChecks()
+	{
+		if ( ! is_null($this->_pass))
+		{
+			return $this->_pass;
+		}
 
-        if ( ! $this->isInstalled())
-        {
-            return null;
-        }
+		$this->_pass = false;
 
-        if ( ! $this->enable_on_acymailing && JFactory::getApplication()->input->get('option') == 'com_acymailing')
-        {
-            return null;
-        }
+		if ( ! Extension::isFrameworkEnabled())
+		{
+			return false;
+		}
 
-        $params = $this->getParams();
+		if ( ! Extension::isAuthorised($this->require_core_auth))
+		{
+			return false;
+		}
 
-        if ( ! Extension::isEnabledInComponent($params))
-        {
-            return null;
-        }
+		if ( ! $this->isInstalled())
+		{
+			return false;
+		}
 
-        if ( ! Extension::isEnabledInArea($params))
-        {
-            return null;
-        }
+		if ( ! $this->enable_on_acymailing && JFactory::getApplication()->input->get('option', '') == 'com_acymailing')
+		{
+			return false;
+		}
 
-        if ( ! $this->extraChecks($params))
-        {
-            return null;
-        }
+		$params = $this->getParams();
 
-        require_once $this->getDir() . '/helper.php';
-        $class_name    = 'PlgButton' . ucfirst($this->_name) . 'Helper';
-        $this->_helper = new $class_name($this->_name, $params);
+		if ( ! Extension::isEnabledInComponent($params))
+		{
+			return false;
+		}
 
-        return $this->_helper;
-    }
+		if ( ! Extension::isEnabledInArea($params))
+		{
+			return false;
+		}
 
-    private function isInstalled()
-    {
-        $extensions = ! is_null($this->check_installed)
-            ? $this->check_installed
-            : [$this->main_type];
+		if ( ! $this->extraChecks($params))
+		{
+			return false;
+		}
 
-        return Extension::areInstalled($this->_name, $extensions);
-    }
+		$this->_pass = true;
 
-    private function getParams()
-    {
-        switch ($this->main_type)
-        {
-            case 'component':
-                if ( ! Protect::isComponentInstalled($this->_name))
-                {
-                    return null;
-                }
+		return true;
+	}
 
-                // Load component parameters
-                return Parameters::getComponent($this->_name);
+	protected function render()
+	{
+		$this->loadScripts();
+		$this->loadStyles();
 
-            case 'plugin':
-            default:
-                if ( ! Protect::isSystemPluginInstalled($this->_name))
-                {
-                    return null;
-                }
+		return $this->renderPopupButton();
+	}
 
-                // Load plugin parameters
-                return Parameters::getPlugin($this->_name);
-        }
-    }
+	private function isInstalled()
+	{
+		$extensions = ! is_null($this->check_installed)
+			? $this->check_installed
+			: [$this->main_type];
 
-    public function extraChecks($params)
-    {
-        return true;
-    }
+		return Extension::areInstalled($this->_name, $extensions);
+	}
 
-    private function getDir()
-    {
-        // use static::class instead of get_class($this) after php 5.4 support is dropped
-        $rc = new ReflectionClass(get_class($this));
+	protected function getParams()
+	{
+		if ( ! is_null($this->_params))
+		{
+			return $this->_params;
+		}
 
-        return dirname($rc->getFileName());
-    }
+		switch ($this->main_type)
+		{
+			case 'component':
+				if (Protect::isComponentInstalled($this->_name))
+				{
+					// Load component parameters
+					$this->_params = Parameters::getComponent($this->_name);
+				}
+				break;
+
+			case 'plugin':
+			default:
+				if (Protect::isSystemPluginInstalled($this->_name))
+				{
+					// Load plugin parameters
+					$this->_params = Parameters::getPlugin($this->_name);
+				}
+				break;
+		}
+
+		return $this->_params;
+	}
+
+	public function extraChecks($params)
+	{
+		return true;
+	}
+
+	protected function loadScripts()
+	{
+	}
+
+	protected function loadStyles()
+	{
+	}
+
+	protected function renderPopupButton()
+	{
+		$button = new JObject;
+
+		$button->setProperties([
+			'modal'   => true,
+			'name'    => $this->_name,
+			'text'    => $this->getButtonText(),
+			'icon'    => $this->_name . '" aria-hidden="true">' . $this->button_icon . '<span></span class="hidden',
+			'iconSVG' => $this->button_icon,
+			'link'    => $this->getPopupLink(),
+			'options' => $this->getPopupOptions(),
+		]);
+
+		return $button;
+	}
+
+	protected function getButtonText()
+	{
+		$params = $this->getParams();
+
+		$text_ini = strtoupper(str_replace(' ', '_', $params->button_text ?? $this->_name));
+		$text     = JText::_($text_ini);
+
+		if ($text == $text_ini)
+		{
+			$text = JText::_($params->button_text ?? $this->_name);
+		}
+
+		return trim($text);
+	}
+
+	protected function getPopupLink()
+	{
+		switch ($this->main_type)
+		{
+			case 'component':
+				return 'index.php?'
+					. 'option=com_' . $this->_name
+					. '&view=items'
+					. '&layout=popup'
+					. '&tmpl=component'
+					. '&editor=' . $this->editor_name
+					. '&' . Session::getFormToken() . '=1';
+
+			case 'plugin':
+			default:
+				return 'index.php?rl_qp=1'
+					. '&class=' . $this->popup_class
+					. '&editor=' . $this->editor_name
+					. '&' . Session::getFormToken() . '=1';
+		}
+	}
+
+	protected function getPopupOptions()
+	{
+		return [
+			'height'     => '1600px',
+			'width'      => '1200px',
+			'bodyHeight' => '70',
+			'modalWidth' => '80',
+		];
+	}
 }

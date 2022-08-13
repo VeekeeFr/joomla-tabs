@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -13,401 +13,479 @@ namespace RegularLabs\Library;
 
 defined('_JEXEC') or die;
 
-use Exception;
-use Joomla\CMS\Filesystem\Folder as JFolder;
+require_once dirname(__FILE__, 2) . '/vendor/autoload.php';
+
+use Intervention\Image\Exception\NotReadableException as NotReadableException;
+use Intervention\Image\ImageManagerStatic as ImageManager;
+use Joomla\CMS\Factory as JFactory;
 use Joomla\CMS\Uri\Uri as JUri;
-use Joomla\Image\Image as JImage;
+use RegularLabs\Library\File as RL_File;
+use RegularLabs\Library\HtmlTag as RL_HtmlTag;
 
 class Image
 {
-    public static function getHeight($source)
-    {
-        $dimensions = self::getDimensions($source);
-
-        return $dimensions->height;
-    }
-
-    public static function getDimensions($source)
-    {
-        $empty = (object) [
-            'width'  => 0,
-            'height' => 0,
-        ];
-
-        $image = self::getImageObject(JPATH_SITE . '/' . $source);
-
-        if (is_null($image))
-        {
-            return $empty;
-        }
-
-        return (object) [
-            'width'  => $image->getWidth(),
-            'height' => $image->getHeight(),
-        ];
-    }
-
-    public static function getImageObject($source)
-    {
-        if (File::isExternal($source))
-        {
-            return null;
-        }
-
-        if ( ! file_exists($source))
-        {
-            return null;
-        }
-
-        if ( ! getimagesize($source))
-        {
-            return null;
-        }
-
-        try
-        {
-            $image = new JImage($source);
-        }
-        catch (Exception $e)
-        {
-            return null;
-        }
-
-        if ( ! ($image instanceof JImage))
-        {
-            return null;
-        }
-
-        if ( ! $image->isLoaded())
-        {
-            return null;
-        }
-
-        return $image;
-    }
-
-    public static function getUrls($source, $width, $height, $folder = 'resized', $resize = true, $quality = 'medium', $possible_suffix = '')
-    {
-        $image = self::isResized($source, $folder, $possible_suffix);
-
-        if ($image)
-        {
-            $source = $image;
-        }
-
-        $original = $source;
-        $resized  = self::getResize($source, $width, $height, $folder, $resize, $quality);
-
-        return (object) compact('original', 'resized');
-    }
-
-    public static function isResized($file, $folder = 'resized', $possible_suffix = '')
-    {
-        if (File::isExternal($file))
-        {
-            return false;
-        }
-
-        if ( ! file_exists($file))
-        {
-            return false;
-        }
-
-        $main_image = self::isResizedWithFolder($file, $folder);
-
-        if ($main_image)
-        {
-            return $main_image;
-        }
-
-        if ( ! $possible_suffix)
-        {
-            return false;
-        }
-
-        return (bool) self::isResizedWithSuffix($file, $possible_suffix);
-    }
-
-    public static function getResize($source, $width, $height, $folder = 'resized', $resize = true, $quality = 'medium')
-    {
-        $destination_folder = File::getDirName($source) . '/' . $folder;
-
-        $override = File::getDirName($source) . '/' . $folder . '/' . File::getBaseName($source);
-
-        if (file_exists(JPATH_SITE . '/' . $override))
-        {
-            $source = $override;
-        }
-
-        if ( ! self::setNewDimensions($source, $width, $height))
-        {
-            return $source;
-        }
-
-        if ( ! $width && ! $height)
-        {
-            return $source;
-        }
-
-        $destination = self::getNewPath(
-            $source,
-            $width,
-            $height,
-            $destination_folder
-        );
-
-        if ( ! file_exists(JPATH_SITE . '/' . $destination) && $resize)
-        {
-            // Create new resized image
-            $destination = self::resize(
-                $source,
-                $width,
-                $height,
-                $destination_folder,
-                $quality
-            );
-        }
-
-        if ( ! file_exists(JPATH_SITE . '/' . $destination))
-        {
-            return $source;
-        }
-
-        return $destination;
-    }
-
-    private static function isResizedWithFolder($file, $resize_folder = 'resized')
-    {
-        $folder             = File::getDirName($file);
-        $file               = File::getBaseName($file);
-        $parent_folder_name = File::getBaseName($folder);
-        $parent_folder      = File::getDirName($folder);
-
-        // Image is not inside the resize folder
-        if ($parent_folder_name != $resize_folder)
-        {
-            return false;
-        }
-
-        // Check if image with same name exists in parent folder
-        if (file_exists(JPATH_SITE . '/' . $parent_folder . '/' . utf8_decode($file)))
-        {
-            return $parent_folder . '/' . $file;
-        }
-
-        // Remove any dimensions from the file
-        // image_300x200.jpg => image.jpg
-        $file = RegEx::replace(
-            '_[0-9]+x[0-9]*(\.[^.]+)$',
-            '\1',
-            $file
-        );
-
-        // Check again if image with same name (but without dimensions) exists in parent folder
-        if (file_exists(JPATH_SITE . '/' . $parent_folder . '/' . utf8_decode($file)))
-        {
-            return $parent_folder . '/' . $file;
-        }
-
-        return false;
-    }
-
-    public static function isResizedWithSuffix($file, $suffix = '_t')
-    {
-        // Remove the suffix from the file
-        // image_t.jpg => image.jpg
-        $main_file = RegEx::replace(
-            RegEx::quote($suffix) . '(\.[^.]+)$',
-            '\1',
-            $file
-        );
-
-        // Nothing removed, so not a resized image
-        if ($main_file == $file)
-        {
-            return false;
-        }
-
-        if ( ! file_exists(JPATH_SITE . '/' . utf8_decode($main_file)))
-        {
-            return false;
-        }
-
-        return $main_file;
-    }
-
-    public static function setNewDimensions($source, &$width, &$height)
-    {
-        if ( ! $width && ! $height)
-        {
-            return false;
-        }
-
-        if (File::isExternal($source))
-        {
-            return false;
-        }
-
-        $clean_source = self::cleanPath($source);
-        $source_path  = JPATH_SITE . '/' . $clean_source;
-
-        $image = self::getImageObject($source_path);
-
-        if (is_null($image))
-        {
-            return false;
-        }
-
-        return self::setNewDimensionsByImageObject($image, $width, $height);
-    }
-
-    public static function getNewPath($source, $width, $height, $destination_folder = '')
-    {
-        $clean_source = self::cleanPath($source);
-
-        $source_parts = pathinfo($clean_source);
-
-        $destination_folder = ltrim($destination_folder ?: File::getDirName($clean_source));
-        $destination_file   = File::getFileName($clean_source) . '_' . $width . 'x' . $height . '.' . $source_parts['extension'];
-
-        JFolder::create(JPATH_SITE . '/' . $destination_folder);
-
-        return ltrim($destination_folder . '/' . $destination_file);
-    }
-
-    public static function resize($source, &$width, &$height, $destination_folder = '', $quality = 'medium', $overwrite = false)
-    {
-        if (File::isExternal($source))
-        {
-            return $source;
-        }
-
-        $clean_source = self::cleanPath($source);
-        $source_path  = JPATH_SITE . '/' . $clean_source;
-
-        $destination_folder = ltrim($destination_folder ?: File::getDirName($clean_source));
-        $destination_folder = self::cleanPath($destination_folder);
-
-        $image = self::getImageObject($source_path);
-
-        if (is_null($image))
-        {
-            return $source;
-        }
-
-        if ( ! self::setNewDimensionsByImageObject($image, $width, $height))
-        {
-            return $source;
-        }
-
-        if ( ! $width && ! $height)
-        {
-            return $source;
-        }
-
-        $destination      = self::getNewPath($source, $width, $height, $destination_folder);
-        $destination_path = JPATH_SITE . '/' . $destination;
-
-        if (file_exists($destination_path) && ! $overwrite)
-        {
-            return $destination;
-        }
-
-        JFolder::create(JPATH_SITE . '/' . $destination_folder);
-
-        try
-        {
-            $info = JImage::getImageFileProperties($source_path);
-
-            $options = ['quality' => self::getQuality($info->type, $quality)];
-
-            $image->cropResize($width, $height, false)
-                ->toFile($destination_path, $info->type, $options);
-
-            return $destination;
-        }
-        catch (Exception $e)
-        {
-            return $source;
-        }
-    }
-
-    public static function cleanPath($source)
-    {
-        $source = ltrim(str_replace(JUri::root(), '', $source), '/');
-        $source = strtok($source, '?');
-
-        return $source;
-    }
-
-    public static function setNewDimensionsByImageObject($image, &$width, &$height)
-    {
-        if ( ! ($image instanceof JImage) || ! $image->isLoaded())
-        {
-            return false;
-        }
-
-        if ( ! $width && ! $height)
-        {
-            return false;
-        }
-
-        try
-        {
-            $original_width  = $image->getWidth();
-            $original_height = $image->getHeight();
-
-            $width  = $width ?: round($original_width / $original_height * $height);
-            $height = $height ?: round($original_height / $original_width * $width);
-        }
-        catch (Exception $e)
-        {
-            return false;
-        }
-
-        if ($width == $original_width && $height == $original_height)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    public static function getQuality($type, $quality = 'medium')
-    {
-        switch ($type)
-        {
-            case IMAGETYPE_JPEG:
-                return min(max(self::getJpgQuality($quality), 0), 100);
-
-            case IMAGETYPE_PNG:
-                return 9;
-
-            default:
-                return '';
-        }
-    }
-
-    public static function getJpgQuality($quality = 'medium')
-    {
-        switch ($quality)
-        {
-            case 'low':
-                return 50;
-
-            case 'high':
-                return 90;
-
-            case 'medium':
-            default:
-                return 70;
-        }
-    }
-
-    public static function getWidth($source)
-    {
-        $dimensions = self::getDimensions($source);
-
-        return $dimensions->width;
-    }
+	private $attributes;
+	private $is_resized;
+	private $main_image;
+	private $main_image_path;
+
+	private $source;
+	private $file;
+	private $dirname;
+	private $basename;
+	private $extension;
+	private $filename;
+	private $mime;
+	private $width  = '';
+	private $height = '';
+
+	public function __construct($source, $attributes = null)
+	{
+		$this->source = $source;
+		$this->file   = $source;
+
+		if ($this->isInternal())
+		{
+			$this->source = self::cleanPath($source);
+			$this->file   = JPATH_ROOT . '/' . ltrim($this->source, '/');
+		}
+
+		$this->attributes = $attributes ?? (object) [];
+
+		if ( ! $this->isInternal() || ! $this->exists())
+		{
+			return;
+		}
+
+		$this->setFileInfo();
+		$this->setDimensions();
+
+		if ($this->isResized())
+		{
+			return;
+		}
+
+		if (empty($this->attributes->resize)
+			|| (empty($this->attributes->width)
+				&& empty($this->attributes->height))
+		)
+		{
+			return;
+		}
+
+		$resized = $this->getResized(
+			$this->attributes->width ?? null,
+			$this->attributes->height ?? null,
+			$this->attributes->{'resize-folder'} ?? null,
+			$this->attributes->quality ?? null
+		);
+
+		if ( ! $resized)
+		{
+			return;
+		}
+
+		$this->source = $resized->basePath();
+		$this->setFileInfo();
+	}
+
+	public function isInternal()
+	{
+		return ! is_null($this->dirname) || RL_File::isInternal($this->source);
+	}
+
+	public static function cleanPath($path)
+	{
+		if (strpos($path, JPATH_SITE . '/') === 0)
+		{
+			$path = substr($path, strlen(JPATH_SITE . '/'));
+		}
+
+		$path = ltrim(str_replace(JUri::root(), '', $path), '/');
+		$path = strtok($path, '?');
+
+		return $path;
+	}
+
+	public function exists()
+	{
+		return file_exists($this->file) && is_file($this->file);
+	}
+
+	/**
+	 * Sets all instance properties from given path
+	 */
+	private function setFileInfo()
+	{
+		$info            = pathinfo($this->source);
+		$this->dirname   = $info['dirname'] ?? null;
+		$this->basename  = $info['basename'] ?? null;
+		$this->extension = $info['extension'] ?? null;
+		$this->filename  = $info['filename'] ?? null;
+
+		$image_info = getimagesize($this->source);
+
+		$this->width  = $image_info[0] ?? '';
+		$this->height = $image_info[1] ?? '';
+		$this->mime   = $image_info['mime'] ?? null;
+	}
+
+	private function setDimensions()
+	{
+		if ( ! $this->isInternal())
+		{
+			$this->attributes->resize = false;
+
+			return;
+		}
+
+		if (empty($this->attributes->resize))
+		{
+			return;
+		}
+
+		// Width and height are already set
+		if ( ! empty($this->attributes->width) && ! empty($this->attributes->height))
+		{
+			return;
+		}
+
+		// Width and height are both not set, so can't calculate resize
+		if ( ! isset($this->attributes->height) && ! isset($this->attributes->width))
+		{
+			$this->attributes->resize = false;
+
+			return;
+		}
+
+		$set_width  = $this->attributes->width ?? 0;
+		$set_height = $this->attributes->height ?? 0;
+
+		$orig_width  = $this->width;
+		$orig_height = $this->height;
+
+		if ($set_width)
+		{
+			$this->attributes->height = round($set_width / $orig_width * $orig_height);
+		}
+
+		if ($set_height)
+		{
+			$this->attributes->width = round($set_height / $orig_height * $orig_width);
+		}
+	}
+
+	public function isResized()
+	{
+		if ( ! is_null($this->is_resized))
+		{
+			return $this->is_resized;
+		}
+
+		$this->is_resized = false;
+
+		$parent_folder_name = File::getBaseName($this->dirname);
+		$parent_folder      = File::getDirName($this->dirname);
+		$resize_folder      = $this->attributes->{'resize-folder'} ?? 'resized';
+
+		// Image is not inside the resize folder
+		if ($parent_folder_name != $resize_folder)
+		{
+			return false;
+		}
+
+		$file_name = $this->basename;
+
+		// Check if image with same name exists in parent folder
+		if (file_exists(JPATH_SITE . '/' . $parent_folder . '/' . utf8_decode($file_name)))
+		{
+			$this->is_resized      = true;
+			$this->main_image_path = $parent_folder . '/' . $file_name;
+
+			return true;
+		}
+
+		// Remove any dimensions from the file
+		// image_300x200.jpg => image.jpg
+		$file_name = RegEx::replace(
+			'_[0-9]+x[0-9]*(\.[^.]+)$',
+			'\1',
+			$this->basename
+		);
+
+		// Check again if image with same name (but without dimensions) exists in parent folder
+		if (file_exists(JPATH_SITE . '/' . $parent_folder . '/' . utf8_decode($file_name)))
+		{
+			$this->is_resized      = true;
+			$this->main_image_path = $parent_folder . '/' . $file_name;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Method to create a resized version of the current image and save them to disk
+	 *
+	 * @param string $width
+	 * @param string $height
+	 * @param string $resizeFolder
+	 *
+	 * @return  \Intervention\Image\Image|null
+	 */
+	public function getResized($width, $height, $resizeFolder = null, $quality = 90)
+	{
+		// Make sure the resource handle is valid.
+		if ( ! $this->isInternal())
+		{
+			return null;
+		}
+
+		// No thumbFolder set -> we will create a thumbs folder in the current image folder
+		if (is_null($resizeFolder))
+		{
+			$resizeFolder = $this->getFolder() . '/resized';
+		}
+
+		// Check destination
+		if ( ! is_dir($resizeFolder)
+			&& ( ! is_dir(dirname($resizeFolder)) || ! @mkdir($resizeFolder)))
+		{
+			return null;
+		}
+
+		if ($width == $this->getWidth() && $height == $this->getHeight())
+		{
+			return null;
+		}
+
+		$imgAge = filemtime($this->getPath());
+		$maxAge = time() - (60 * JFactory::getApplication()->get('cachetime'));
+
+		$resizedFile = $resizeFolder . '/' . $this->getFileName() . '_' . $width . 'x' . $height . '.' . $this->getExtension();
+
+		if (file_exists($resizedFile)
+			&& filemtime($resizedFile) > $maxAge // not older that cache time setting
+			&& filemtime($resizedFile) > $imgAge // not older that original image
+		)
+		{
+			return ImageManager::make($resizedFile);
+		}
+
+		[$resizeWidth, $resizeHeight] = $this->getResizeDimensions($width, $height);
+
+		try
+		{
+			$resized = ImageManager::make($this->getPath())
+				->resize($resizeWidth, $resizeHeight, function ($constraint) {
+					$constraint->aspectRatio();
+				})
+				->crop($width, $height)
+				->save($resizedFile, $this->parseQuality($quality));
+		}
+		catch (NotReadableException $exception)
+		{
+			$resized = null;
+		}
+
+		if ( ! $resized)
+		{
+			return null;
+		}
+
+		return $resized;
+	}
+
+	public function getFolder()
+	{
+		return $this->dirname;
+	}
+
+	public function getWidth()
+	{
+		return $this->width;
+	}
+
+	public function getHeight()
+	{
+		return $this->height;
+	}
+
+	public function getPath()
+	{
+		return $this->basePath() ?: $this->source;
+	}
+
+	public function getFileName()
+	{
+		return $this->filename;
+	}
+
+	public function getExtension()
+	{
+		return $this->extension;
+	}
+
+	private function getResizeDimensions($width, $height)
+	{
+		if (($this->getWidth() / $width) > ($this->getHeight() / $height))
+		{
+			return [null, $height];
+		}
+
+		return [$width, null];
+	}
+
+	private function parseQuality($quality = 90)
+	{
+		if (is_int($quality))
+		{
+			return $quality;
+		}
+
+		switch ($quality)
+		{
+			case 'low':
+				return 50;
+
+			case 'medium':
+				return 70;
+
+			case 'high':
+			default:
+				return 90;
+		}
+	}
+
+	/**
+	 * Get fully qualified path
+	 *
+	 * @return string
+	 */
+	private function basePath()
+	{
+		if ($this->dirname && $this->basename)
+		{
+			return $this->dirname . '/' . $this->basename;
+		}
+
+		return null;
+	}
+
+	public function getMainImage()
+	{
+		if ( ! is_null($this->main_image))
+		{
+			return $this->main_image;
+		}
+
+		$this->main_image = false;
+
+		if ( ! $this->isResized())
+		{
+			return false;
+		}
+
+		if ( ! $this->main_image_path)
+		{
+			return false;
+		}
+
+		$this->main_image = new Image($this->main_image_path, $this->attributes);
+
+		return $this->main_image;
+	}
+
+	/**
+	 * Method to create a resized version of the current image and save them to disk
+	 *
+	 * @param string $width
+	 * @param string $height
+	 * @param string $resizeFolder
+	 *
+	 * @return  string|false
+	 */
+	public function getResizedUrl($width, $height, $resizeFolder = null, $quality = 90)
+	{
+		$image = $this->getResized($width, $height, $resizeFolder, $quality);
+
+		if ( ! $image)
+		{
+			return $this->getPath();
+		}
+
+		return $image->basePath();
+	}
+
+	public function renderTag()
+	{
+		$image_tag = '<img src="' . $this->getPath() . '" '
+			. RL_HtmlTag::flattenAttributes($this->getTagAttributes()) . ' />';
+
+		if ( ! isset($this->attributes->{'outer-class'}))
+		{
+			return $image_tag;
+		}
+
+		return '<div class="' . htmlspecialchars($this->attributes->{'outer-class'}) . '">'
+			. $image_tag
+			. '</div>';
+	}
+
+	private function getTagAttributes()
+	{
+		$remove = [
+			'src',
+			'resize',
+			'resize-folder',
+			'quality',
+			'caption',
+			'outer-class',
+		];
+
+		$attributes = array_diff_key((array) $this->attributes, array_flip($remove));
+
+		$ordered_keys = [
+			'alt',
+			'title',
+			'width',
+			'height',
+			'class',
+		];
+
+		krsort($ordered_keys);
+
+		foreach ($ordered_keys as $key)
+		{
+			if ( ! key_exists($key, $attributes))
+			{
+				continue;
+			}
+
+			$value = $attributes[$key];
+			unset($attributes[$key]);
+
+			$attributes = array_merge([$key => $value], $attributes);
+		}
+
+		return $attributes;
+	}
+
+	/**
+	 * Get file size
+	 *
+	 * @return mixed
+	 */
+	private function filesize()
+	{
+		$path = $this->basePath();
+
+		if (file_exists($path) && is_file($path))
+		{
+			return filesize($path);
+		}
+
+		return false;
+	}
 }

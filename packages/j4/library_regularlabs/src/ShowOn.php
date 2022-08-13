@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -15,42 +15,36 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Form\FormHelper as JFormHelper;
 
-/**
- * Class ShowOn
- * @package RegularLabs\Library
- */
 class ShowOn
 {
-    public static function show($string = '', $condition = '', $formControl = '', $group = '', $animate = true, $class = '')
-    {
-        if ( ! $condition || ! $string)
-        {
-            return $string;
-        }
+	public static function show($string = '', $condition = '', $formControl = '', $group = '', $animate = true, $class = '')
+	{
+		if ( ! $condition || ! $string)
+		{
+			return $string;
+		}
 
-        return self::open($condition, $formControl, $group, $animate, $class)
-            . $string
-            . self::close();
-    }
+		return self::open($condition, $formControl, $group, $animate, $class)
+			. $string
+			. self::close();
+	}
 
-    public static function open($condition = '', $formControl = '', $group = '', $class = '')
-    {
-        if ( ! $condition)
-        {
-            return self::close();
-        }
+	public static function open($condition = '', $formControl = '', $group = '', $class = '')
+	{
+		if ( ! $condition)
+		{
+			return self::close();
+		}
 
-        Document::loadFormDependencies();
+		Document::useScript('showon');
 
-        $json = json_encode(JFormHelper::parseShowOnConditions($condition, $formControl, $group));
+		$json = json_encode(JFormHelper::parseShowOnConditions($condition, $formControl, $group));
 
-        $class = $class ? ' class="' . $class . '"' : '';
+		return '<div data-showon=\'' . $json . '\' class="hidden ' . $class . '"">';
+	}
 
-        return '<div data-showon=\'' . $json . '\' style="display: none;"' . $class . '>';
-    }
-
-    public static function close()
-    {
-        return '</div>';
-    }
+	public static function close()
+	{
+		return '</div>';
+	}
 }

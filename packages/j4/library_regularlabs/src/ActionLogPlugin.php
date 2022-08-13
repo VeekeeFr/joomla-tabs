@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -15,245 +15,279 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory as JFactory;
 use Joomla\CMS\Language\Text as JText;
-use Joomla\CMS\Plugin\CMSPlugin as JCMSPlugin;
-use RegularLabs\Library\ParametersNew as Parameters;
+use Joomla\Component\Actionlogs\Administrator\Plugin\ActionLogPlugin as JActionLogPlugin;
+use RegularLabs\Library\Language as RL_Language;
 
-/**
- * Class ActionLogPlugin
- * @package RegularLabs\Library
- */
-class ActionLogPlugin extends JCMSPlugin
+class ActionLogPlugin extends JActionLogPlugin
 {
-    static $ids    = [];
-    public $alias  = '';
-    public $events = [];
-    public $items  = [];
-    public $name   = '';
-    public $option = '';
-    public $table  = null;
+	static $ids                      = [];
+	static $item_types               = [];
+	static $item_titles              = [];
+	public $alias                    = '';
+	public $events                   = [];
+	public $lang_prefix_change_state = 'PLG_SYSTEM_ACTIONLOGS';
+	public $lang_prefix_delete       = 'PLG_SYSTEM_ACTIONLOGS';
+	public $lang_prefix_install      = 'PLG_ACTIONLOG_JOOMLA';
+	public $lang_prefix_save         = 'PLG_SYSTEM_ACTIONLOGS';
+	public $lang_prefix_uninstall    = 'PLG_ACTIONLOG_JOOMLA';
+	public $name                     = '';
+	public $option                   = '';
+	public $table                    = null;
 
-    public function __construct(&$subject, array $config = [])
-    {
-        parent::__construct($subject, $config);
+	public function __construct(&$subject, array $config = [])
+	{
+		parent::__construct($subject, $config);
 
-        Language::load('plg_actionlog_' . $this->alias);
+		Language::load('plg_actionlog_joomla', JPATH_ADMINISTRATOR);
+		Language::load('plg_actionlog_' . $this->alias);
 
-        $config = Parameters::getComponent($this->alias);
+		$config = Parameters::getComponent($this->alias);
 
-        $enable_actionlog = $config->enable_actionlog ?? true;
-        $this->events     = $enable_actionlog ? ['*'] : [];
+		$enable_actionlog = $config->enable_actionlog ?? true;
+		$this->events     = $enable_actionlog ? ['*'] : [];
 
-        if ($enable_actionlog && ! empty($config->actionlog_events))
-        {
-            $this->events = ArrayHelper::toArray($config->actionlog_events);
-        }
+		if ($enable_actionlog && ! empty($config->actionlog_events))
+		{
+			$this->events = ArrayHelper::toArray($config->actionlog_events);
+		}
 
-        $this->name   = JText::_($this->name);
-        $this->option = $this->option ?: 'com_' . $this->alias;
-    }
+		$this->name   = JText::_($this->name);
+		$this->option = $this->option ?: 'com_' . $this->alias;
+	}
 
-    public function onContentChangeState($context, $ids, $value)
-    {
-        if (strpos($context, $this->option) === false)
-        {
-            return;
-        }
+	public function addItem($extension, $type, $title)
+	{
+		self::$item_types[$extension]  = $type;
+		self::$item_titles[$extension] = $title;
+	}
 
-        if ( ! ArrayHelper::find(['*', 'change_state'], $this->events))
-        {
-            return;
-        }
+	public function onContentChangeState($context, $ids, $value)
+	{
+		if (strpos($context, $this->option) === false)
+		{
+			return;
+		}
 
-        $item = $this->getItem($context);
+		if ( ! ArrayHelper::find(['*', 'change_state'], $this->events))
+		{
+			return;
+		}
 
-        if ( ! $this->table)
-        {
-            if ( ! is_file($item->file))
-            {
-                return;
-            }
+		switch ($value)
+		{
+			case 0:
+				$languageKey = $this->lang_prefix_change_state . '_CONTENT_UNPUBLISHED';
+				$action      = 'unpublish';
+				break;
+			case 1:
+				$languageKey = $this->lang_prefix_change_state . '_CONTENT_PUBLISHED';
+				$action      = 'publish';
+				break;
+			case 2:
+				$languageKey = $this->lang_prefix_change_state . '_CONTENT_ARCHIVED';
+				$action      = 'archive';
+				break;
+			case -2:
+				$languageKey = $this->lang_prefix_change_state . '_CONTENT_TRASHED';
+				$action      = 'trash';
+				break;
+			default:
+				return;
+		}
 
-            require_once $item->file;
+		$item = $this->getItem($context);
 
-            $this->table = (new $item->model)->getTable();
-        }
+		if ( ! $this->table)
+		{
+			if ( ! is_file($item->file))
+			{
+				return;
+			}
 
-        foreach ($ids as $id)
-        {
-            $this->table->load($id);
+			require_once $item->file;
 
-            $title    = $this->table->title ?? $this->table->name ?? $this->table->id;
-            $itemlink = str_replace('{id}', $this->table->id, $item->url);
+			$this->table = (new $item->model)->getTable();
+		}
 
-            $message = [
-                'type'     => $item->title,
-                'id'       => $id,
-                'title'    => $title,
-                'itemlink' => $itemlink,
-            ];
+		foreach ($ids as $id)
+		{
+			$this->table->load($id);
 
-            Log::changeState($message, $context, $value);
-        }
-    }
+			$title    = $this->table->title ?? $this->table->name ?? $this->table->id;
+			$itemlink = str_replace('{id}', $this->table->id, $item->url);
 
-    private function getItem($context)
-    {
-        $item = $this->getItemData($context);
+			$message = [
+				'action'   => $action,
+				'type'     => $item->title,
+				'id'       => $id,
+				'title'    => $title,
+				'itemlink' => $itemlink,
+			];
 
-        $item->title = isset($item->title)
-            ? JText::_($item->title)
-            : $item->type . ' ' . JText::_('RL_ITEM');
+			$this->addLog([$message], $languageKey, $context);
+		}
+	}
 
-        if ( ! isset($item->file))
-        {
-            $item->file = JPATH_ADMINISTRATOR . '/components/' . $this->option . '/models/' . $item->type . '.php';
-        }
+	public function getItem($context)
+	{
+		$item = $this->getItemData($context);
 
-        if ( ! isset($item->model))
-        {
-            $item->model = $this->alias . 'Model' . ucfirst($item->type);
-        }
+		if ( ! isset($item->file))
+		{
+			$item->file = JPATH_ADMINISTRATOR . '/components/' . $item->option . '/models/' . $item->type . '.php';
+		}
 
-        if ( ! isset($item->url))
-        {
-            $item->url = 'index.php?option=' . $this->option . '&view=' . $item->type . '&layout=edit&id={id}';
-        }
+		if ( ! isset($item->model))
+		{
+			$item->model = $this->alias . 'Model' . ucfirst($item->type);
+		}
 
-        return $item;
-    }
+		if ( ! isset($item->url))
+		{
+			$item->url = 'index.php?option=' . $item->option . '&view=' . $item->type . '&layout=edit&id={id}';
+		}
 
-    private function getItemData($context)
-    {
-        $default = (object) [
-            'type' => 'item',
-        ];
+		return $item;
+	}
 
-        $type = key($this->items) ?: 'item';
+	private function getItemData($extension)
+	{
+		if (strpos($extension, '.') !== false)
+		{
+			[$extension, $type] = explode('.', $extension);
+		}
 
-        if (strpos($context, '.') !== false)
-        {
-            $parts = explode('.', $context);
-            $type  = $parts[1];
-        }
+		RL_Language::load($extension);
 
-        if ( ! isset($this->items[$type]))
-        {
-            return $default;
-        }
+		$type  = $type ?? self::$item_types[$extension] ?? 'item';
+		$title = self::$item_titles[$extension] ?? JText::_($extension) . ' ' . JText::_('RL_ITEM');
 
-        $item = $this->items[$type];
+		return (object) [
+			'context' => $extension . '.' . $type,
+			'option'  => $extension,
+			'type'    => $type,
+			'title'   => $title,
+		];
+	}
 
-        if ( ! isset($item->type))
-        {
-            $item->type = $type;
-        }
+	public function onExtensionAfterDelete($context, $table)
+	{
+		self::onContentAfterDelete($context, $table);
+	}
 
-        return $item;
-    }
+	public function onContentAfterDelete($context, $table)
+	{
+		if (strpos($context, $this->option) === false)
+		{
+			return;
+		}
 
-    public function onExtensionAfterDelete($context, $table)
-    {
-        self::onContentAfterDelete($context, $table);
-    }
+		if ( ! ArrayHelper::find(['*', 'delete'], $this->events))
+		{
+			return;
+		}
 
-    public function onContentAfterDelete($context, $table)
-    {
-        if (strpos($context, $this->option) === false)
-        {
-            return;
-        }
+		$item = $this->getItem($context);
 
-        if ( ! ArrayHelper::find(['*', 'delete'], $this->events))
-        {
-            return;
-        }
+		$title = $table->title ?? $table->name ?? $table->id;
 
-        $item = $this->getItem($context);
+		$message = [
+			'action' => 'deleted',
+			'type'   => $item->title,
+			'id'     => $table->id,
+			'title'  => $title,
+		];
 
-        $title = $table->title ?? $table->name ?? $table->id;
+		$this->addLog([$message], $this->lang_prefix_delete . '_CONTENT_DELETED', $context);
+	}
 
-        $message = [
-            'type'  => $item->title,
-            'id'    => $table->id,
-            'title' => $title,
-        ];
+	public function onExtensionAfterSave($context, $table, $isNew)
+	{
+		self::onContentAfterSave($context, $table, $isNew);
+	}
 
-        Log::delete($message, $context);
-    }
+	public function onContentAfterSave($context, $table, $isNew, $data = [])
+	{
+		$data = ArrayHelper::toArray($data);
 
-    public function onExtensionAfterSave($context, $table, $isNew)
-    {
-        self::onContentAfterSave($context, $table, $isNew);
-    }
+		if (isset($data['ignore_actionlog']) && $data['ignore_actionlog'])
+		{
+			return;
+		}
 
-    public function onContentAfterSave($context, $table, $isNew)
-    {
-        if (strpos($context, $this->option) === false)
-        {
-            return;
-        }
+		if (strpos($context, $this->option) === false)
+		{
+			return;
+		}
 
-        $event = $isNew ? 'create' : 'update';
+		$event = $isNew ? 'create' : 'update';
 
-        if ( ! ArrayHelper::find(['*', $event], $this->events))
-        {
-            return;
-        }
+		if ( ! ArrayHelper::find(['*', $event], $this->events))
+		{
+			return;
+		}
 
-        $item = $this->getItem($context);
+		$item = $this->getItem($context);
 
-        $title    = $table->title ?? $table->name ?? $table->id;
-        $item_url = str_replace('{id}', $table->id, $item->url);
+		$title    = $table->title ?? $table->name ?? $table->id;
+		$item_url = str_replace('{id}', $table->id, $item->url);
 
-        $message = [
-            'type'     => $item->title,
-            'id'       => $table->id,
-            'title'    => $title,
-            'itemlink' => $item_url,
-        ];
+		$message = [
+			'action'   => $isNew ? 'add' : 'update',
+			'type'     => $item->title,
+			'id'       => $table->id,
+			'title'    => $title,
+			'itemlink' => $item_url,
+		];
 
-        Log::save($message, $context, $isNew);
-    }
+		$languageKey = $isNew ? $this->lang_prefix_save . '_CONTENT_ADDED' : $this->lang_prefix_save . '_CONTENT_UPDATED';
 
-    public function onExtensionAfterUninstall($installer, $eid, $result)
-    {
-        // Prevent duplicate logs
-        if (in_array('uninstall_' . $eid, self::$ids))
-        {
-            return;
-        }
+		$this->addLog([$message], $languageKey, $context);
+	}
 
-        $context = JFactory::getApplication()->input->get('option');
+	public function onExtensionAfterUninstall($installer, $eid, $result)
+	{
+		// Prevent duplicate logs
+		if (in_array('uninstall_' . $eid, self::$ids, true))
+		{
+			return;
+		}
 
-        if (strpos($context, $this->option) === false)
-        {
-            return;
-        }
+		$context = JFactory::getApplication()->input->get('option', '');
 
-        if ( ! ArrayHelper::find(['*', 'uninstall'], $this->events))
-        {
-            return;
-        }
+		if (strpos($context, $this->option) === false)
+		{
+			return;
+		}
 
-        if ($result === false)
-        {
-            return;
-        }
+		if ( ! ArrayHelper::find(['*', 'uninstall'], $this->events))
+		{
+			return;
+		}
 
-        $manifest = $installer->get('manifest');
+		if ($result === false)
+		{
+			return;
+		}
 
-        if ($manifest === null)
-        {
-            return;
-        }
+		$manifest = $installer->get('manifest');
 
-        self::$ids[] = 'uninstall_' . $eid;
+		if ($manifest === null)
+		{
+			return;
+		}
 
-        $message = [
-            'id'             => $eid,
-            'extension_name' => JText::_($manifest->name),
-        ];
+		self::$ids[] = 'uninstall_' . $eid;
 
-        Log::uninstall($message, 'com_regularlabsmanager', $manifest->attributes()->type);
-    }
+		$message = [
+			'action'         => 'uninstall',
+			'type'           => $this->lang_prefix_install . '_TYPE_' . strtoupper($manifest->attributes()->type),
+			'id'             => $eid,
+			'extension_name' => JText::_($manifest->name),
+		];
+
+		$languageKey = $this->lang_prefix_uninstall . '_EXTENSION_UNINSTALLED';
+
+		$this->addLog([$message], $languageKey, 'com_regularlabsmanager');
+	}
 }
