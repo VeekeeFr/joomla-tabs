@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -13,21 +13,21 @@ namespace RegularLabs\Plugin\System\RegularLabs;
 
 defined('_JEXEC') or die;
 
-use RegularLabs\Library\ParametersNew as RL_Parameters;
+use RegularLabs\Library\Parameters as RL_Parameters;
 
 class Params
 {
-    protected static $params = null;
+	protected static $params = null;
 
-    public static function get()
-    {
-        if ( ! is_null(self::$params))
-        {
-            return self::$params;
-        }
+	public static function get()
+	{
+		if ( ! is_null(self::$params))
+		{
+			return self::$params;
+		}
 
-        self::$params = RL_Parameters::getPlugin('regularlabs');
+		self::$params = RL_Parameters::getPlugin('regularlabs');
 
-        return self::$params;
-    }
+		return self::$params;
+	}
 }

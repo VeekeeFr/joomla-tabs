@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -12,42 +12,27 @@
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory as JFactory;
-use Joomla\CMS\Plugin\CMSPlugin as JPlugin;
-use Joomla\CMS\Uri\Uri as JUri;
-use Joomla\Registry\Registry;
+use Joomla\CMS\Language\Text as JText;
+use Joomla\Registry\Registry as JRegistry;
+use RegularLabs\Library\Color as RL_Color;
 use RegularLabs\Library\Document as RL_Document;
+use RegularLabs\Library\DownloadKey as RL_DownloadKey;
 use RegularLabs\Library\Extension as RL_Extension;
-use RegularLabs\Library\ParametersNew as RL_Parameters;
+use RegularLabs\Library\Language as RL_Language;
+use RegularLabs\Library\RegEx as RL_RegEx;
+use RegularLabs\Library\SystemPlugin as RL_SystemPlugin;
 use RegularLabs\Library\Uri as RL_Uri;
-use RegularLabs\Plugin\System\RegularLabs\AdminMenu;
-use RegularLabs\Plugin\System\RegularLabs\DownloadKey;
-use RegularLabs\Plugin\System\RegularLabs\QuickPage;
-use RegularLabs\Plugin\System\RegularLabs\SearchHelper;
+use RegularLabs\Plugin\System\RegularLabs\QuickPage as RL_QuickPage;
 
-if ( ! is_file(__DIR__ . '/vendor/autoload.php'))
-{
-    return;
-}
-
-require_once __DIR__ . '/vendor/autoload.php';
-
-if ( ! is_file(JPATH_LIBRARIES . '/regularlabs/autoload.php')
-    || ! is_file(JPATH_LIBRARIES . '/regularlabs/src/ParametersNew.php')
+if ( ! is_file(JPATH_LIBRARIES . '/regularlabs/regularlabs.xml')
+	|| ! is_file(JPATH_LIBRARIES . '/regularlabs/src/SystemPlugin.php')
+	|| ! is_file(JPATH_LIBRARIES . '/regularlabs/src/DownloadKey.php')
 )
 {
-    return;
+	return;
 }
 
-require_once JPATH_LIBRARIES . '/regularlabs/autoload.php';
-
-if ( ! RL_Document::isJoomlaVersion(4))
-{
-    RL_Extension::disable('regularlabs', 'plugin');
-
-    return;
-}
-
-JFactory::getLanguage()->load('plg_system_regularlabs', __DIR__);
+RL_Language::load('plg_system_regularlabs');
 
 $config = new JConfig;
 
@@ -55,202 +40,242 @@ $input = JFactory::getApplication()->input;
 
 // Deal with error reporting when loading pages we don't want to break due to php warnings
 if ( ! in_array($config->error_reporting, ['none', '0'])
-    && (
-        ($input->get('option') == 'com_regularlabsmanager'
-            && ($input->get('task') == 'update' || $input->get('view') == 'process')
-        )
-        ||
-        ($input->getInt('rl_qp') == 1 && $input->get('url') != '')
-    )
+	&& (
+		($input->get('option', '') == 'com_regularlabsmanager'
+			&& ($input->get('task', '') == 'update' || $input->get('view', '') == 'process')
+		)
+		||
+		($input->getInt('rl_qp') == 1 && $input->get('url', '') != '')
+	)
 )
 {
-    RL_Extension::orderPluginFirst('regularlabs');
+	RL_Extension::orderPluginFirst('regularlabs');
 
-    error_reporting(E_ERROR);
+	error_reporting(E_ERROR);
 }
 
-class PlgSystemRegularLabs extends JPlugin
+class PlgSystemRegularLabs extends RL_SystemPlugin
 {
-    public function onAfterDispatch()
-    {
-        if ( ! is_file(JPATH_LIBRARIES . '/regularlabs/autoload.php'))
-        {
-            return;
-        }
+	public $_enable_in_admin = true;
+	public $_jversion        = 4;
 
-        if ( ! RL_Document::isAdmin(true) || ! RL_Document::isHtml()
-        )
-        {
-            return;
-        }
+	/**
+	 * @return bool|mixed|string|void|null
+	 * @throws Exception
+	 */
+	public function onAjaxRegularlabs()
+	{
+		$input = JFactory::getApplication()->input;
 
-        RL_Document::loadMainDependencies();
-    }
+		$format = $input->getString('format', 'json');
 
-    public function onAfterRender()
-    {
-        if ( ! is_file(JPATH_LIBRARIES . '/regularlabs/autoload.php'))
-        {
-            return;
-        }
+		if ($input->getBool('getDownloadKey'))
+		{
+			return RL_DownloadKey::get();
+		}
 
-        if ( ! RL_Document::isAdmin(true) || ! RL_Document::isHtml()
-        )
-        {
-            return;
-        }
+		if ($input->getBool('checkDownloadKey'))
+		{
+			return $this->checkDownloadKey();
+		}
 
-        $this->fixQuotesInTooltips();
+		if ($input->getBool('saveDownloadKey'))
+		{
+			return $this->saveDownloadKey();
+		}
 
-        AdminMenu::combine();
+		if ($input->getBool('saveColor'))
+		{
+			$this->saveColor();
+		}
 
-        AdminMenu::addHelpItem();
+		$attributes = RL_Uri::getCompressedAttributes();
+		$attributes = new JRegistry($attributes);
 
-        DownloadKey::cloak();
-    }
+		$field_class = $attributes->get('field_class');
 
-    private function fixQuotesInTooltips()
-    {
-        $html = JFactory::getApplication()->getBody();
+		if (empty($field_class) || ! class_exists($field_class))
+		{
+			return false;
+		}
 
-        if ($html == '')
-        {
-            return;
-        }
+		$type = $attributes->type ?? '';
 
-        if (strpos($html, '&amp;quot;rl-code&amp;quot;') === false
-            && strpos($html, '&amp;quot;rl_code&amp;quot;') === false)
-        {
-            return;
-        }
+		$method = 'getAjax' . ucfirst($format) . ucfirst($type);
 
-        $html = str_replace(
-            ['&amp;quot;rl-code&amp;quot;', '&amp;quot;rl_code&amp;quot;'],
-            '&quot;rl-code&quot;',
-            $html
-        );
+		$field_class = new $field_class;
 
-        JFactory::getApplication()->setBody($html);
-    }
+		if ( ! method_exists($field_class, $method))
+		{
+			return false;
+		}
 
-    public function onAfterRoute()
-    {
-        if ( ! is_file(JPATH_LIBRARIES . '/regularlabs/autoload.php'))
-        {
-            if (JFactory::getApplication()->isClient('administrator'))
-            {
-                JFactory::getApplication()->enqueueMessage('The Regular Labs Library folder is missing or incomplete: ' . JPATH_LIBRARIES . '/regularlabs', 'error');
-            }
+		return $field_class->$method($attributes);
+	}
 
-            return;
-        }
+	/**
+	 * @param string $buffer
+	 */
+	protected function loadStylesAndScripts(&$buffer)
+	{
+		self::addStylesheetToInstaller();
+	}
 
-        DownloadKey::update();
+	/**
+	 * @return  void
+	 */
+	public function onAfterRoute(): void
+	{
+		if ( ! is_file(JPATH_LIBRARIES . '/regularlabs/regularlabs.xml'))
+		{
+			if (JFactory::getApplication()->isClient('administrator'))
+			{
+				JFactory::getApplication()->enqueueMessage('The Regular Labs Library folder is missing or incomplete: ' . JPATH_LIBRARIES . '/regularlabs', 'error');
+			}
 
-        SearchHelper::load();
+			return;
+		}
 
-        QuickPage::render();
-    }
+		RL_QuickPage::render();
+	}
 
-    public function onAjaxRegularLabs()
-    {
-        $input = JFactory::getApplication()->input;
+	/**
+	 * @return  void
+	 */
+	public function onAfterRender(): void
+	{
+		if ( ! RL_Document::isAdmin(true) || ! RL_Document::isHtml())
+		{
+			return;
+		}
 
-        $format = $input->getString('format', 'json');
+		$this->removeEmptyFormControlGroups();
+		$this->removeFormColumnLayout();
+	}
 
-        $attributes = RL_Uri::getCompressedAttributes();
-        $attributes = new Registry($attributes);
+	/**
+	 * @throws Exception
+	 */
+	private function addStylesheetToInstaller()
+	{
+		if (JFactory::getApplication()->input->getCmd('option') !== 'com_installer')
+		{
+			return;
+		}
 
-        $field      = $attributes->get('field');
-        $field_type = $attributes->get('fieldtype');
+		if ( ! self::hasRegularLabsMessages())
+		{
+			return;
+		}
 
-        $class = $this->getAjaxClass($field, $field_type);
+		RL_Document::style('regularlabs.admin-form');
+	}
 
-        if (empty($class) || ! class_exists($class))
-        {
-            return false;
-        }
+	/**
+	 * @return false|mixed|string|null
+	 * @throws Exception
+	 */
+	private function checkDownloadKey()
+	{
+		$key       = JFactory::getApplication()->input->getString('key');
+		$extension = JFactory::getApplication()->input->getString('extension', 'all');
 
-        $type = $attributes->type ?? '';
+		return RL_DownloadKey::isValid($key, $extension);
+	}
 
-        $method = 'getAjax' . ucfirst($format) . ucfirst($type);
+	/**
+	 * @return bool
+	 * @throws Exception
+	 */
+	private function hasRegularLabsMessages()
+	{
+		foreach (JFactory::getApplication()->getMessageQueue() as $message)
+		{
+			if ( ! isset($message['message'])
+				|| strpos($message['message'], 'class="rl-') === false)
+			{
+				continue;
+			}
 
-        $class = new $class;
+			return true;
+		}
 
-        if ( ! method_exists($class, $method))
-        {
-            return false;
-        }
+		return false;
+	}
 
-        return $class->$method($attributes);
-    }
+	private function removeEmptyFormControlGroups()
+	{
+		$html = $this->app->getBody();
 
-    public function getAjaxClass($field, $field_type = '')
-    {
-        if (empty($field))
-        {
-            return false;
-        }
+		if ($html == '')
+		{
+			return;
+		}
 
-        if ($field_type)
-        {
-            return $this->getFieldClass($field, $field_type);
-        }
+		$html = RL_RegEx::replace(
+			'<div class="(control-label|controls)">\s*</div>',
+			'',
+			$html
+		);
 
-        $file = JPATH_LIBRARIES . '/regularlabs/fields/' . strtolower($field) . '.php';
+		$html = RL_RegEx::replace(
+			'<div class="control-group">\s*</div>',
+			'',
+			$html
+		);
 
-        if ( ! file_exists($file))
-        {
-            return $this->getFieldClass($field, $field);
-        }
+		$this->app->setBody($html);
+	}
 
-        require_once $file;
+	private function removeFormColumnLayout()
+	{
+		if ($this->app->isClient('site'))
+		{
+			return;
+		}
 
-        return 'JFormFieldRL_' . ucfirst($field);
-    }
+		if ($this->app->input->get('option', '') != 'com_plugins'
+			|| $this->app->input->get('view', '') != 'plugin'
+			|| $this->app->input->get('layout', '') != 'edit')
+		{
+			return;
+		}
 
-    public function getFieldClass($field, $field_type)
-    {
-        $file = JPATH_PLUGINS . '/fields/' . strtolower($field_type) . '/fields/' . strtolower($field) . '.php';
+		$html = $this->app->getBody();
 
-        if ( ! file_exists($file))
-        {
-            return false;
-        }
+		if ($html == '')
+		{
+			return;
+		}
 
-        require_once $file;
+		$html = str_replace('column-count-md-2 column-count-lg-3', '', $html);
 
-        return 'JFormField' . ucfirst($field);
-    }
+		$this->app->setBody($html);
+	}
 
-    public function onInstallerBeforePackageDownload(&$url, &$headers)
-    {
-        $uri  = JUri::getInstance($url);
-        $host = $uri->getHost();
+	/**
+	 * @throws Exception
+	 */
+	private function saveColor()
+	{
+		$input = JFactory::getApplication()->input;
 
-        if (
-            strpos($host, 'regularlabs.com') === false
-            && strpos($host, 'nonumber.nl') === false
-        )
-        {
-            return true;
-        }
+		$table     = $input->get('table', '');
+		$item_id   = $input->getInt('item_id');
+		$color     = $input->getString('color');
+		$id_column = $input->get('id_column', 'id');
 
-        $uri->setScheme('https');
-        $uri->setHost('download.regularlabs.com');
-        $uri->delVar('pro');
-        $url = $uri->toString();
+		return RL_Color::save($table, $item_id, $color, $id_column);
+	}
 
-        $params = RL_Parameters::getComponent('regularlabsmanager');
+	/**
+	 * @return bool
+	 * @throws Exception
+	 */
+	private function saveDownloadKey()
+	{
+		$key = JFactory::getApplication()->input->getString('key');
 
-        if (empty($params) || empty($params->key))
-        {
-            return true;
-        }
-
-        $uri->setVar('k', $params->key);
-        $url = $uri->toString();
-
-        return true;
-    }
+		return RL_DownloadKey::store($key);
+	}
 }

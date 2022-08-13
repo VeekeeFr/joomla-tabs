@@ -1,7 +1,7 @@
 <?php
 /**
  * @package         Regular Labs Library
- * @version         22.8.8209
+ * @version         22.6.8549
  * 
  * @author          Peter van Westen <info@regularlabs.com>
  * @link            http://regularlabs.com
@@ -15,69 +15,72 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory as JFactory;
 use Joomla\CMS\Plugin\PluginHelper as JPluginHelper;
+use RegularLabs\Library\Document as RL_Document;
 
 class Application
 {
-    public function render()
-    {
-        $app      = JFactory::getApplication();
-        $document = JFactory::getDocument();
-        $user     = JFactory::getApplication()->getIdentity() ?: JFactory::getUser();
+	static function getThemesDirectory()
+	{
+		if (JFactory::getApplication()->get('themes.base'))
+		{
+			return JFactory::getApplication()->get('themes.base');
+		}
 
-        $app->loadDocument($document);
+		if (defined('JPATH_THEMES'))
+		{
+			return JPATH_THEMES;
+		}
 
-        $params = [
-            'template'  => $app->get('theme'),
-            'file'      => $app->get('themeFile', 'index.php'),
-            'params'    => $app->get('themeParams'),
-            'directory' => self::getThemesDirectory(),
-        ];
+		if (defined('JPATH_BASE'))
+		{
+			return JPATH_BASE . '/themes';
+		}
 
-        // Parse the document.
-        $document->parse($params);
+		return __DIR__ . '/themes';
+	}
 
-        // Trigger the onBeforeRender event.
-        JPluginHelper::importPlugin('system');
-        $app->triggerEvent('onBeforeRender');
+	public function render()
+	{
+		$app      = JFactory::getApplication();
+		$document = RL_Document::get();
+		$user     = $app->getIdentity() ?: JFactory::getUser();
 
-        $caching = false;
+		$app->loadDocument($document);
 
-        if ($app->isClient('site') && $app->get('caching') && $app->get('caching', 2) == 2 && ! $user->get('id'))
-        {
-            $caching = true;
-        }
+		$params = [
+			'template'  => $app->get('theme'),
+			'file'      => $app->get('themeFile', 'index.php'),
+			'params'    => $app->get('themeParams'),
+			'csp_nonce' => $app->get('csp_nonce'),
+			'themeInherits' => $app->get('themeInherits'),
+			'directory' => self::getThemesDirectory(),
+		];
 
-        // Render the document.
-        $data = $document->render($caching, $params);
+		// Parse the document.
+		$document->parse($params);
 
-        // Set the application output data.
-        $app->setBody($data);
+		// Trigger the onBeforeRender event.
+		JPluginHelper::importPlugin('system');
+		$app->triggerEvent('onBeforeRender');
 
-        // Trigger the onAfterRender event.
-        $app->triggerEvent('onAfterRender');
+		$caching = false;
 
-        // Mark afterRender in the profiler.
-        // Causes issues, so commented out.
-        // JDEBUG ? $app->profiler->mark('afterRender') : null;
-    }
+		if ($app->isClient('site') && $app->get('caching') && $app->get('caching', 2) == 2 && ! $user->get('id'))
+		{
+			$caching = true;
+		}
 
-    static function getThemesDirectory()
-    {
-        if (JFactory::getApplication()->get('themes.base'))
-        {
-            return JFactory::getApplication()->get('themes.base');
-        }
+		// Render the document.
+		$data = $document->render($caching, $params);
 
-        if (defined('JPATH_THEMES'))
-        {
-            return JPATH_THEMES;
-        }
+		// Set the application output data.
+		$app->setBody($data);
 
-        if (defined('JPATH_BASE'))
-        {
-            return JPATH_BASE . '/themes';
-        }
+		// Trigger the onAfterRender event.
+		$app->triggerEvent('onAfterRender');
 
-        return __DIR__ . '/themes';
-    }
+		// Mark afterRender in the profiler.
+		// Causes issues, so commented out.
+		// JDEBUG ? $app->profiler->mark('afterRender') : null;
+	}
 }
